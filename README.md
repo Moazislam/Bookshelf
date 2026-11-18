@@ -46,7 +46,41 @@ cd src-tauri && cargo test   # Rust: migrations, import/dedupe, cascades, search
 pnpm tauri build
 ```
 
-The NSIS installer is written to `src-tauri/target/release/bundle/nsis/`.
+This builds the installer for the system you're on:
+
+| Platform | Output (in `src-tauri/target/release/bundle/`) |
+| --- | --- |
+| Windows | `nsis/BookShelf_<version>_x64-setup.exe` |
+| macOS | `dmg/BookShelf_<version>_<arch>.dmg` and `macos/BookShelf.app` |
+| Linux | `deb/*.deb`, `appimage/*.AppImage`, `rpm/*.rpm` |
+
+Linux needs the WebKitGTK build dependencies first. On Debian/Ubuntu:
+`sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`.
+
+### Automatic builds for every platform (GitHub Actions)
+
+`.github/workflows/build.yml` runs on every push to `main` and on pull requests:
+
+1. Type-checks the frontend and runs the Rust tests.
+2. Builds installers on Windows, macOS (Apple Silicon and Intel) and Linux.
+3. Uploads them as downloadable artifacts on the workflow run (Actions tab → run → *Artifacts*).
+
+To publish a release, bump `version` in `src-tauri/tauri.conf.json` and `package.json`, then push a tag:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow creates a **draft** GitHub Release with every installer attached. Review it and click *Publish*.
+
+### Unsigned builds
+
+The installers are not code-signed, so the first launch shows a warning:
+
+- **Windows:** SmartScreen → *More info* → *Run anyway*.
+- **macOS:** right-click the app → *Open*. If macOS says the app is damaged, run `xattr -cr /Applications/BookShelf.app`.
+- **Linux:** no warning. Make the AppImage executable with `chmod +x`.
 
 ## Architecture
 

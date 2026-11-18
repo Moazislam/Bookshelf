@@ -28,7 +28,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "dmg", "app", "deb", "appimage", "rpm"],
     "shortDescription": "Personal digital library",
     "longDescription": "A local-first library to organise, read, highlight and annotate PDFs, EPUBs, comics and text documents.",
     "category": "Productivity",
