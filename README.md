@@ -2,6 +2,8 @@
 
 A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markdown files. You can import, organise, read, highlight, bookmark and take notes, with no account and no cloud.
 
+**[Download the latest release](https://github.com/Moazislam/Bookshelf/releases/latest)** for Windows, macOS or Linux.
+
 ## Screenshots
 
 ![Dashboard](docs/screenshots/dashboard.png)
