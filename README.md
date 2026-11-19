@@ -4,6 +4,10 @@ A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markd
 
 ## Screenshots
 
+![Dashboard](docs/screenshots/dashboard.png)
+
+![Library](docs/screenshots/library.png)
+
 ![Reading a PDF with the contents panel](docs/screenshots/reader.png)
 
 ![Reading statistics](docs/screenshots/statistics.png)
