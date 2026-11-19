@@ -2,6 +2,12 @@
 
 A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markdown files. You can import, organise, read, highlight, bookmark and take notes, with no account and no cloud.
 
+## Screenshots
+
+![Reading a PDF with the contents panel](docs/screenshots/reader.png)
+
+![Reading statistics](docs/screenshots/statistics.png)
+
 ## Features
 
 - **Library**
