@@ -20,7 +20,7 @@ function CollectionCard({ c }: { c: Collection }) {
   const docs = useMemo(() => documents.filter((d) => d.collectionIds.includes(c.id)).slice(0, 3), [documents, c.id]);
   const children = collections.filter((x) => x.parentId === c.id).length;
   return (
-    <Link to={`/collections/${c.id}`} className="group flex flex-col rounded-xl border border-border bg-surface p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <Link to={`/collections/${c.id}`} className="group flex flex-col rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-strong">
       <div className="relative mb-4 flex h-28 items-end justify-center overflow-hidden rounded-lg" style={{ background: `color-mix(in srgb, ${swatch(c.color)} 16%, var(--surface-2))` }}>
         {docs.length ? (
           <div className="flex translate-y-3 items-end -space-x-5">
@@ -53,9 +53,9 @@ export function CollectionsPage() {
   const top = collections.filter((c) => !c.parentId);
   return (
     <div className="px-4 md:px-8 py-7">
-      <div className="mb-6 flex items-end justify-between">
+      <div className="mb-6 flex items-end justify-between gap-3 max-md:flex-col max-md:items-start">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold">Collections</h1>
+          <h1 className="font-serif text-[24px] md:text-[28px] font-medium">Collections</h1>
           <p className="mt-1 text-[13px] text-muted">Shelves for your documents. A document can sit on as many shelves as you like.</p>
         </div>
         <Button variant="primary" onClick={() => setOpen(true)}>
@@ -122,7 +122,7 @@ export function CollectionDetailPage() {
             <Folder className="size-5" style={{ color: swatch(c.color) }} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-[28px] font-semibold leading-tight">{c.name}</h1>
+            <h1 className="font-serif text-[28px] font-medium leading-tight">{c.name}</h1>
             {c.description && <p className="mt-1 max-w-2xl text-[13px] text-muted">{c.description}</p>}
           </div>
           <Button onClick={() => pickAndImportFiles(c.id)}>
@@ -150,7 +150,7 @@ export function CollectionDetailPage() {
                 <ChevronRight className="size-3.5 text-subtle" />
               </Link>
             ))}
-            <label className="ml-auto flex items-center gap-2 text-[12.5px] text-muted">
+            <label className="ml-auto flex items-center gap-2 text-[13px] text-muted">
               <Switch checked={includeSub} onChange={setIncludeSub} label="Include sub-collections" /> Include sub-collections
             </label>
           </div>

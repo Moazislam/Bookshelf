@@ -91,7 +91,7 @@ export function AppShell() {
             <div className="grid size-12 place-items-center rounded-xl bg-accent-soft text-accent">
               <Upload className="size-5" />
             </div>
-            <p className="font-serif text-lg font-semibold">Drop to add to your library</p>
+            <p className="font-serif text-lg font-medium">Drop to add to your library</p>
             <p className="text-[13px] text-muted">PDF, EPUB, CBZ, TXT and Markdown — files or whole folders</p>
           </div>
         </div>

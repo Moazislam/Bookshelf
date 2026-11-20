@@ -203,7 +203,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
           <PopoverContent align="start" className="w-[440px] p-4">
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-[13px]">
               <div>
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Format</div>
+                <div className="mb-2 text-[12px] font-medium text-subtle">Format</div>
                 <div className="flex flex-wrap gap-1.5">
                   {(["pdf", "epub", "cbz", "txt", "md"] as DocFormat[]).map((f) => (
                     <Chip key={f} on={filters.formats.includes(f)} onClick={() => toggle("formats", f)}>{FORMAT_LABEL[f]}</Chip>
@@ -211,7 +211,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
                 </div>
               </div>
               <div>
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Status</div>
+                <div className="mb-2 text-[12px] font-medium text-subtle">Status</div>
                 <div className="flex flex-wrap gap-1.5">
                   {STATUSES.map((s) => (
                     <Chip key={s} on={filters.statuses.includes(s)} onClick={() => toggle("statuses", s)}>{STATUS_LABEL[s]}</Chip>
@@ -219,7 +219,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
                 </div>
               </div>
               <div className="col-span-2">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Tags (match all)</div>
+                <div className="mb-2 text-[12px] font-medium text-subtle">Tags (match all)</div>
                 {tags.length ? (
                   <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
                     {tags.map((t) => (
@@ -234,7 +234,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
                 )}
               </div>
               <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">Author</span>
+                <span className="text-[12px] font-medium text-subtle">Author</span>
                 <Select value={filters.author} onChange={(e) => setFilters({ ...filters, author: e.target.value })} className="h-8">
                   <option value="">Any author</option>
                   {authors.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -242,7 +242,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
               </label>
               {!preset.collectionId && (
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">Collection</span>
+                  <span className="text-[12px] font-medium text-subtle">Collection</span>
                   <Select value={filters.collectionId} onChange={(e) => setFilters({ ...filters, collectionId: e.target.value })} className="h-8">
                     <option value="">Any collection</option>
                     {collectionOptions(collections).map((c) => <option key={c.id} value={c.id}>{"  ".repeat(c.depth * 2)}{c.label}</option>)}
@@ -250,7 +250,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
                 </label>
               )}
               <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">Date added</span>
+                <span className="text-[12px] font-medium text-subtle">Date added</span>
                 <Select value={filters.added} onChange={(e) => setFilters({ ...filters, added: e.target.value as Filters["added"] })} className="h-8">
                   <option value="any">Any time</option>
                   <option value="7">Last 7 days</option>
@@ -366,7 +366,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className={cn("inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12.5px] transition-colors", on ? "border-accent/40 bg-accent-soft text-fg" : "border-border text-muted hover:text-fg")}>
+    <button onClick={onClick} className={cn("inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[13px] transition-colors", on ? "border-accent/40 bg-accent-soft text-fg" : "border-border text-muted hover:text-fg")}>
       {children}
     </button>
   );
@@ -431,7 +431,7 @@ function VirtualList({ docs, selected, onSelect, tagName }: { docs: Document[]; 
   const selecting = selected.size > 0;
   return (
     <div className="mx-4 md:mx-8 my-4 overflow-hidden rounded-lg border border-border bg-surface/50">
-      <div className="grid h-9 grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] max-md:grid-cols-[28px_minmax(0,1fr)_32px] max-md:[&>*:nth-child(n+3):nth-child(-n+7)]:hidden items-center gap-3 border-b border-border bg-bg-subtle/60 px-3 text-[11px] font-semibold uppercase tracking-wider text-subtle">
+      <div className="grid h-9 grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] max-md:grid-cols-[28px_minmax(0,1fr)_32px] max-md:[&>*:nth-child(n+3):nth-child(-n+7)]:hidden items-center gap-3 border-b border-border bg-bg-subtle/60 px-3 text-[12px] font-medium text-subtle">
         <span />
         <span>Title</span>
         <span>Author</span>

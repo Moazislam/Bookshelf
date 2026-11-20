@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpen, CircleCheck, Flame, Folder, Highlighter, Library, Settings2, StickyNote, Upload, FileText } from "lucide-react";
+import { ArrowRight, BookOpen, Flame, Folder, Library, Settings2, Upload } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis } from "recharts";
 import { Button, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger, EmptyState, Progress, Skeleton } from "@/components/ui";
 import { DocumentCover } from "@/components/library/DocumentCover";
@@ -9,16 +9,16 @@ import { useLibrary } from "@/stores/library";
 import { useSettings } from "@/stores/settings";
 import { api, isMobile } from "@/services/api";
 import { pickAndImportFiles } from "@/features/documents/importer";
-import { formatDuration, greeting, relativeTime, swatch, FORMAT_LABEL } from "@/utils";
+import { formatDuration, relativeTime, swatch, FORMAT_LABEL } from "@/utils";
 import type { Document } from "@/types";
 
 function Section({ title, to, children, action }: { title: string; to?: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <section className="animate-slide-up">
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="font-serif text-[19px] font-semibold">{title}</h2>
+        <h2 className="font-serif text-[19px] font-medium">{title}</h2>
         {action ?? (to && (
-          <Link to={to} className="flex items-center gap-1 text-[12.5px] text-muted hover:text-fg">
+          <Link to={to} className="flex items-center gap-1 text-[13px] text-muted hover:text-fg">
             View all <ArrowRight className="size-3.5" />
           </Link>
         ))}
@@ -31,13 +31,13 @@ function Section({ title, to, children, action }: { title: string; to?: string; 
 function ContinueCard({ doc }: { doc: Document }) {
   const navigate = useNavigate();
   return (
-    <div className="group flex gap-4 rounded-xl border border-border bg-surface p-3.5 shadow-sm transition-all hover:shadow-md">
+    <div className="group flex gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-strong">
       <DocumentCover doc={doc} className="aspect-[2/3] w-[76px] shrink-0 rounded-[4px] shadow-md" />
       <div className="flex min-w-0 flex-1 flex-col">
         <h3 className="line-clamp-2 font-semibold leading-snug">{doc.title}</h3>
-        <p className="mt-0.5 truncate text-[12.5px] text-muted">{doc.author || "Unknown author"}</p>
+        <p className="mt-0.5 truncate text-[13px] text-muted">{doc.author || "Unknown author"}</p>
         <div className="mt-auto">
-          <div className="mb-1.5 flex items-center justify-between text-[11.5px] text-subtle">
+          <div className="mb-1.5 flex items-center justify-between text-[12px] text-subtle">
             <span>{Math.round(doc.progress * 100)}% · {FORMAT_LABEL[doc.format]}</span>
             <span>{relativeTime(doc.openedAt)}</span>
           </div>
@@ -51,13 +51,11 @@ function ContinueCard({ doc }: { doc: Document }) {
   );
 }
 
-function StatTile({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: React.ReactNode }) {
+function StatTile({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-[12px] text-muted">
-        <Icon className="size-3.5" /> {label}
-      </div>
-      <div className="mt-2 font-serif text-[26px] font-semibold tabular-nums leading-none">{value}</div>
+      <div className="text-[12px] text-muted">{label}</div>
+      <div className="mt-2 font-serif text-[26px] font-medium tabular-nums leading-none">{value}</div>
     </div>
   );
 }
@@ -68,7 +66,6 @@ export function DashboardPage() {
   const documents = useLibrary((s) => s.documents);
   const collections = useLibrary((s) => s.collections);
   const sections = useSettings((s) => s.values["dashboard.sections"]);
-  const name = useSettings((s) => s.values["profile.name"]);
   const setSetting = useSettings((s) => s.set);
   const stats = useAsync(() => api.getStats(14), [documents.length]);
 
@@ -80,17 +77,17 @@ export function DashboardPage() {
   if (loaded && documents.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 md:px-8 py-16">
-        <h1 className="font-serif text-[34px] font-semibold">{greeting()}{name ? `, ${name}` : ""}.</h1>
-        <p className="mt-2 text-[15px] text-muted">Welcome to BookShelf — a quiet place for everything you read.</p>
+        <h1 className="font-serif text-[34px] font-medium">{new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</h1>
+        <p className="mt-2 text-[15px] text-muted">A quiet place for everything you read</p>
         <div className="mt-10 rounded-2xl border border-dashed border-border-strong bg-surface p-10 text-center">
           <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent">
             <Library className="size-6" />
           </div>
-          <h2 className="mt-5 font-serif text-xl font-semibold">Start your library</h2>
-          <p className="mx-auto mt-2 max-w-md text-[13.5px] text-muted">
+          <h2 className="mt-5 font-serif text-xl font-medium">Start your library</h2>
+          <p className="mx-auto mt-2 max-w-md text-[14px] text-muted">
             {isMobile()
               ? "Import PDFs, EPUBs, comics (CBZ), text or Markdown files from your phone. BookShelf keeps its own copy, so your originals are never changed."
-              : "Drop PDFs, EPUBs, comics (CBZ), text or Markdown files anywhere in this window — or import a whole folder. Your files stay exactly where they are."}
+              : "Drop PDFs, EPUBs, comics (CBZ), text or Markdown files anywhere in this window, or import a whole folder. Your files stay exactly where they are."}
           </p>
           <Button variant="primary" size="lg" className="mt-6" onClick={() => pickAndImportFiles()}>
             <Upload /> Import documents
@@ -105,7 +102,7 @@ export function DashboardPage() {
     <div className="mx-auto flex max-w-[1240px] flex-col gap-9 px-4 md:px-8 py-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[32px] font-semibold leading-tight">{greeting()}{name ? `, ${name}` : ""}.</h1>
+          <h1 className="font-serif text-[32px] font-medium leading-tight">{new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</h1>
           <p className="mt-1.5 text-[14px] text-muted">
             {documents.length} documents in your library
             {weekSeconds > 0 ? ` · ${formatDuration(weekSeconds)} read this week` : " · no reading logged this week yet"}
@@ -158,12 +155,12 @@ export function DashboardPage() {
         <Section title="At a glance" to="/stats">
           {t ? (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-              <StatTile icon={Library} label="Documents" value={t.documents} />
-              <StatTile icon={FileText} label="Pages read" value={t.pagesRead.toLocaleString()} />
-              <StatTile icon={BookOpen} label="Reading now" value={t.reading} />
-              <StatTile icon={CircleCheck} label="Completed" value={t.completed} />
-              <StatTile icon={Highlighter} label="Highlights" value={t.highlights} />
-              <StatTile icon={StickyNote} label="Notes" value={t.notes} />
+              <StatTile label="Documents" value={t.documents} />
+              <StatTile label="Pages read" value={t.pagesRead.toLocaleString()} />
+              <StatTile label="Reading now" value={t.reading} />
+              <StatTile label="Completed" value={t.completed} />
+              <StatTile label="Highlights" value={t.highlights} />
+              <StatTile label="Notes" value={t.notes} />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[86px] rounded-xl" />)}</div>
@@ -176,9 +173,9 @@ export function DashboardPage() {
           <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-4">
             {recent.map((d) => (
               <Link key={d.id} to={`/read/${d.id}`} className="group">
-                <DocumentCover doc={d} className="aspect-[2/3] w-full rounded-[4px] shadow-md transition-transform group-hover:-translate-y-0.5 group-hover:shadow-lg" />
-                <div className="mt-2 line-clamp-2 text-[12.5px] font-medium leading-snug">{d.title}</div>
-                <div className="truncate text-[11.5px] text-muted">{relativeTime(d.addedAt)}</div>
+                <DocumentCover doc={d} className="aspect-[2/3] w-full rounded-[4px] shadow-md transition-opacity group-hover:opacity-90" />
+                <div className="mt-2 line-clamp-2 text-[13px] font-medium leading-snug">{d.title}</div>
+                <div className="truncate text-[12px] text-muted">{relativeTime(d.addedAt)}</div>
               </Link>
             ))}
           </div>
@@ -197,7 +194,7 @@ export function DashboardPage() {
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-[13px] font-medium">{c.name}</div>
-                      <div className="text-[11.5px] text-subtle">{c.documentCount} documents</div>
+                      <div className="text-[12px] text-subtle">{c.documentCount} documents</div>
                     </div>
                   </Link>
                 ))}
@@ -214,7 +211,7 @@ export function DashboardPage() {
                 stats.data.activity.some((d) => d.seconds > 0) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stats.data.activity.map((d) => ({ ...d, minutes: Math.round(d.seconds / 60), label: new Date(d.date + "T00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) }))}>
-                      <XAxis dataKey="label" tick={{ fontSize: 10.5, fill: "var(--fg-subtle)" }} axisLine={false} tickLine={false} interval={1} />
+                      <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--fg-subtle)" }} axisLine={false} tickLine={false} interval={1} />
                       <ChartTooltip cursor={{ fill: "var(--bg-subtle)" }} contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} formatter={(v) => [`${v} min`, "Reading"]} />
                       <Bar dataKey="minutes" fill="var(--accent)" radius={[4, 4, 0, 0]} maxBarSize={28} />
                     </BarChart>

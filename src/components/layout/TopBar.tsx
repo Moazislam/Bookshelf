@@ -40,7 +40,7 @@ function TaskIndicator() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-semibold uppercase tracking-wider text-subtle">Activity</div>
+        <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-medium text-subtle">Activity</div>
         {tasks.length === 0 ? (
           <p className="px-3.5 py-6 text-center text-[13px] text-muted">No background tasks. Imports and indexing show up here.</p>
         ) : (

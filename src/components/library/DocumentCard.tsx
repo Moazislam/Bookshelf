@@ -40,12 +40,12 @@ export const DocumentCard = memo(function DocumentCard({ doc, selected, selectin
         >
           <div className="relative">
             <DocumentCover doc={doc} className={cn("aspect-[2/3] w-full rounded-[5px] shadow-md transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg", doc.missing && "opacity-50 grayscale")} />
-            <span className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-black/55 px-1.5 py-px text-[9.5px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+            <span className="absolute bottom-1.5 left-1.5 rounded-[4px] bg-black/55 px-1.5 py-px text-[10px] font-medium text-white backdrop-blur-sm">
               {FORMAT_LABEL[doc.format]}
             </span>
             {doc.favorite && <Star className="absolute right-2 top-2 size-4 fill-amber-400 text-amber-400 drop-shadow" />}
             {doc.missing && (
-              <span className="absolute inset-x-2 top-2 flex items-center justify-center gap-1 rounded bg-danger px-1.5 py-1 text-[10.5px] font-medium text-white">
+              <span className="absolute inset-x-2 top-2 flex items-center justify-center gap-1 rounded bg-danger px-1.5 py-1 text-[11px] font-medium text-white">
                 <Unlink className="size-3" /> File missing
               </span>
             )}
@@ -134,7 +134,7 @@ export const DocumentRow = memo(function DocumentRow({ doc, selected, selecting,
                 {doc.favorite && <Star className="size-3 shrink-0 fill-amber-400 text-amber-400" />}
                 {doc.missing && <Unlink className="size-3 shrink-0 text-danger" />}
               </div>
-              {tagNames && <div className="truncate text-[11.5px] text-subtle">{tagNames}</div>}
+              {tagNames && <div className="truncate text-[12px] text-subtle">{tagNames}</div>}
             </div>
           </div>
           <span className="truncate text-muted">{doc.author || "—"}</span>
@@ -145,7 +145,7 @@ export const DocumentRow = memo(function DocumentRow({ doc, selected, selecting,
           </span>
           <span className="flex items-center gap-2">
             <Progress value={doc.progress} className="w-14" tone={doc.status === "completed" ? "success" : "accent"} />
-            <span className="w-8 text-right text-[11.5px] tabular-nums text-subtle">{Math.round(doc.progress * 100)}%</span>
+            <span className="w-8 text-right text-[12px] tabular-nums text-subtle">{Math.round(doc.progress * 100)}%</span>
           </span>
           <span className="text-right text-[12px] tabular-nums text-subtle" title={doc.openedAt ? relativeTime(doc.openedAt) : undefined}>
             {formatBytes(doc.fileSize)}

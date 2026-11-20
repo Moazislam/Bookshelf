@@ -47,7 +47,7 @@ function NavItem({ to, label, icon: Icon, end, collapsed, count }: { to: string;
       className={({ isActive }) =>
         cn(
           "group flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors",
-          isActive ? "bg-surface text-fg shadow-sm ring-1 ring-border" : "text-muted hover:bg-bg-subtle hover:text-fg",
+          isActive ? "relative bg-surface text-fg shadow-sm ring-1 ring-border before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-accent" : "text-muted hover:bg-bg-subtle hover:text-fg",
           collapsed && "justify-center px-0",
         )
       }
@@ -85,8 +85,8 @@ function CollectionTree({ collections, parentId, depth }: { collections: Collect
               to={`/collections/${c.id}`}
               className={({ isActive }) =>
                 cn(
-                  "group flex h-7 items-center gap-2 rounded-md pr-2 text-[12.5px] transition-colors",
-                  isActive ? "bg-surface text-fg shadow-sm ring-1 ring-border" : "text-muted hover:bg-bg-subtle hover:text-fg",
+                  "group flex h-7 items-center gap-2 rounded-md pr-2 text-[13px] transition-colors",
+                  isActive ? "relative bg-surface text-fg shadow-sm ring-1 ring-border before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-accent" : "text-muted hover:bg-bg-subtle hover:text-fg",
                 )
               }
               style={{ paddingLeft: 10 + depth * 14 }}
@@ -105,7 +105,7 @@ function CollectionTree({ collections, parentId, depth }: { collections: Collect
               ) : null}
               {isOpen ? <FolderOpen className="size-3.5 shrink-0" style={{ color: swatch(c.color) }} /> : <Folder className="size-3.5 shrink-0" style={{ color: swatch(c.color) }} />}
               <span className="truncate">{c.name}</span>
-              <span className="ml-auto text-[10.5px] tabular-nums text-subtle opacity-0 group-hover:opacity-100">{c.documentCount}</span>
+              <span className="ml-auto text-[11px] tabular-nums text-subtle opacity-0 group-hover:opacity-100">{c.documentCount}</span>
             </NavLink>
             {hasKids && isOpen && <CollectionTree collections={collections} parentId={c.id} depth={depth + 1} />}
           </div>
@@ -148,7 +148,7 @@ export function Sidebar({ drawer = false }: { drawer?: boolean }) {
             <path d="M5 4h4v16H5zM11 4h3v16h-3zM16.5 5.2l2.8-.7 3 14.6-2.8.7z" />
           </svg>
         </div>
-        {!collapsed && <span className="font-serif text-[17px] font-semibold tracking-tight">BookShelf</span>}
+        {!collapsed && <span className="font-serif text-[17px] font-medium tracking-tight">BookShelf</span>}
       </div>
 
       <div className={cn("px-3 pb-3", collapsed && "px-2.5")}>
@@ -185,7 +185,7 @@ export function Sidebar({ drawer = false }: { drawer?: boolean }) {
         {!collapsed && (
           <div className="mt-5">
             <div className="mb-1 flex items-center justify-between px-2.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">Collections</span>
+              <span className="text-[12px] font-medium text-subtle">Collections</span>
               <Tooltip content="New collection" side="right">
                 <Button variant="ghost" size="icon-sm" className="size-6" onClick={() => setNewCollection(true)} aria-label="New collection">
                   <Plus />
@@ -206,11 +206,11 @@ export function Sidebar({ drawer = false }: { drawer?: boolean }) {
       <div className={cn("border-t border-border p-3", collapsed && "px-2.5")}>
         {!collapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-soft font-serif text-[13px] font-semibold text-accent">
+            <div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-soft font-serif text-[13px] font-medium text-accent">
               {(profileName || "My").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px] font-medium">{profileName ? `${profileName}'s Library` : "My Library"}</div>
+              <div className="truncate text-[13px] font-medium">{profileName ? `${profileName}'s Library` : "My Library"}</div>
               <div className="flex items-center gap-1 text-[11px] text-subtle">
                 <HardDrive className="size-3" />
                 {counts.total} docs · {formatBytes(counts.size)}

@@ -15,7 +15,7 @@ import type { SearchResults } from "@/types";
 
 function Snippet({ text, className }: { text: string; className?: string }) {
   return (
-    <span className={cn("line-clamp-2 text-[12.5px] text-muted", className)}>
+    <span className={cn("line-clamp-2 text-[13px] text-muted", className)}>
       {snippetParts(text).map((p, i) =>
         p.hit ? (
           <mark key={i} className="rounded-sm bg-accent-soft px-0.5 font-medium text-fg">
@@ -32,7 +32,7 @@ function Snippet({ text, className }: { text: string; className?: string }) {
 const itemCls =
   "flex cursor-default items-start gap-3 rounded-md px-2.5 py-2 text-[13px] data-[selected=true]:bg-bg-subtle aria-selected:bg-bg-subtle";
 const groupCls =
-  "[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-subtle";
+  "[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-subtle";
 
 export function SearchPalette() {
   const open = useUI((s) => s.searchOpen);
@@ -153,7 +153,7 @@ export function SearchPalette() {
                     >
                       <FileText className="mt-0.5 size-4 shrink-0 text-subtle" />
                       <div className="min-w-0">
-                        <div className="truncate text-[12.5px] font-medium">
+                        <div className="truncate text-[13px] font-medium">
                           {h.documentTitle}
                           <span className="font-normal text-subtle"> · {h.label ?? (byId[h.documentId]?.format === "pdf" ? `Page ${h.locator}` : "Text")}</span>
                         </div>
@@ -169,7 +169,7 @@ export function SearchPalette() {
                     <Command.Item key={h.id} value={`hl-${h.id}`} onSelect={() => go(`/read/${h.documentId}?hl=${h.id}`)} className={itemCls}>
                       <span className={cn("mt-1 h-4 w-1 shrink-0 rounded-full", `hl-${h.color}`)} style={{ background: "var(--hl)" }} />
                       <div className="min-w-0">
-                        <div className="truncate text-[12.5px] font-medium">
+                        <div className="truncate text-[13px] font-medium">
                           {h.documentTitle}
                           {h.label && <span className="font-normal text-subtle"> · {h.label}</span>}
                         </div>
@@ -185,7 +185,7 @@ export function SearchPalette() {
                     <Command.Item key={n.id} value={`note-${n.id}`} onSelect={() => go(`/notes?note=${n.id}`)} className={itemCls}>
                       <StickyNote className="mt-0.5 size-4 shrink-0 text-subtle" />
                       <div className="min-w-0">
-                        <div className="truncate text-[12.5px] font-medium">
+                        <div className="truncate text-[13px] font-medium">
                           {n.title || "Untitled note"}
                           {n.documentTitle && <span className="font-normal text-subtle"> · {n.documentTitle}</span>}
                         </div>

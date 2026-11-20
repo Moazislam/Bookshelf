@@ -30,10 +30,10 @@ export const DocumentCover = memo(function DocumentCover({ doc, className, small
     <div className={cn("relative flex flex-col overflow-hidden", className)} style={{ background: bg, color: fg }}>
       <div className="absolute inset-y-0 left-0 w-[6%] bg-black/15" />
       {small ? (
-        <div className="m-auto font-serif text-[10px] font-semibold opacity-90">{FORMAT_LABEL[doc.format].slice(0, 3)}</div>
+        <div className="m-auto font-serif text-[10px] font-medium opacity-90">{FORMAT_LABEL[doc.format].slice(0, 3)}</div>
       ) : (
         <div className="@container flex h-full flex-col p-[11%] pl-[16%]">
-          <div className="mt-[14%] line-clamp-5 break-words font-serif text-[13cqw] font-semibold leading-[1.15]">{doc.title}</div>
+          <div className="mt-[14%] line-clamp-5 break-words font-serif text-[13cqw] font-medium leading-[1.15]">{doc.title}</div>
           {doc.author && <div className="mt-auto line-clamp-2 text-[7.5cqw] opacity-70">{doc.author}</div>}
         </div>
       )}

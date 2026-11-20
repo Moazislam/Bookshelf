@@ -31,7 +31,7 @@ function ColorDots({ value, onPick }: { value?: HighlightColor; onPick: (c: High
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => onPick(c)}
             aria-label={`Highlight ${c}`}
-            className={cn("size-6 rounded-full border-2 border-surface shadow-sm transition-transform hover:scale-110", value === c && "ring-2 ring-fg/50")}
+            className={cn("size-6 rounded-full border-2 border-surface shadow-sm transition-shadow", value === c && "ring-2 ring-fg/50")}
             style={{ background: HL_SWATCH[c] }}
           />
         </Tooltip>

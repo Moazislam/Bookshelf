@@ -47,7 +47,7 @@ function TypographyPopover({ format }: { format: Document["format"] }) {
     return (
       <div className="w-64 space-y-4 text-[13px]">
         <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Layout</div>
+          <div className="mb-2 text-[12px] font-medium text-subtle">Layout</div>
           <SegmentedControl
             value={v["reading.pdfLayout"]}
             onChange={(x) => set("reading.pdfLayout", x)}
@@ -68,7 +68,7 @@ function TypographyPopover({ format }: { format: Document["format"] }) {
     return (
       <div className="w-64 space-y-4 text-[13px]">
         <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Fit</div>
+          <div className="mb-2 text-[12px] font-medium text-subtle">Fit</div>
           <SegmentedControl value={v["reading.comicFit"]} onChange={(x) => set("reading.comicFit", x)} options={[{ value: "height", label: "Height" }, { value: "width", label: "Width" }, { value: "both", label: "Page" }]} />
         </div>
         <label className="flex items-center justify-between">
@@ -81,7 +81,7 @@ function TypographyPopover({ format }: { format: Document["format"] }) {
   return (
     <div className="w-72 space-y-4 text-[13px]">
       <div>
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Theme</div>
+        <div className="mb-2 text-[12px] font-medium text-subtle">Theme</div>
         <div className="grid grid-cols-4 gap-2">
           {(
             [
@@ -99,7 +99,7 @@ function TypographyPopover({ format }: { format: Document["format"] }) {
         </div>
       </div>
       <label className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-subtle">Font</span>
+        <span className="text-[12px] font-medium text-subtle">Font</span>
         <Select value={v["reading.font"]} onChange={(e) => set("reading.font", e.target.value as typeof v["reading.font"])} className="h-8">
           <option value="literata">Literata</option>
           <option value="serif">Source Serif</option>
@@ -108,15 +108,15 @@ function TypographyPopover({ format }: { format: Document["format"] }) {
         </Select>
       </label>
       <div>
-        <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wider text-subtle"><span>Size</span><span className="tabular-nums">{v["reading.fontSize"]}%</span></div>
+        <div className="mb-1.5 flex justify-between text-[12px] font-medium text-subtle"><span>Size</span><span className="tabular-nums">{v["reading.fontSize"]}%</span></div>
         <Slider value={v["reading.fontSize"]} min={70} max={200} step={5} onChange={(x) => set("reading.fontSize", x)} label="Font size" />
       </div>
       <div>
-        <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wider text-subtle"><span>Line spacing</span><span className="tabular-nums">{v["reading.lineHeight"].toFixed(2)}</span></div>
+        <div className="mb-1.5 flex justify-between text-[12px] font-medium text-subtle"><span>Line spacing</span><span className="tabular-nums">{v["reading.lineHeight"].toFixed(2)}</span></div>
         <Slider value={v["reading.lineHeight"]} min={1.2} max={2.4} step={0.05} onChange={(x) => set("reading.lineHeight", x)} label="Line spacing" />
       </div>
       <div>
-        <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wider text-subtle"><span>Margins</span></div>
+        <div className="mb-1.5 flex justify-between text-[12px] font-medium text-subtle"><span>Margins</span></div>
         <Slider value={v["reading.margins"]} min={0} max={4} step={1} onChange={(x) => set("reading.margins", x)} label="Margins" />
       </div>
       <div className="flex items-center justify-between gap-3">
@@ -371,12 +371,12 @@ export function ReaderPage() {
 
   return (
     <div className="flex h-full flex-col bg-bg" onMouseMove={(e) => fullscreen && setChromeHidden(e.clientY > 70)}>
-      <header className={cn("z-20 flex min-h-12 shrink-0 items-center gap-1 border-b border-border bg-bg px-2 pt-safe-t transition-all", fullscreen && "absolute inset-x-0 top-0 shadow-md", fullscreen && chromeHidden && "pointer-events-none -translate-y-full opacity-0")}>
+      <header className={cn("z-20 flex min-h-12 shrink-0 items-center gap-1 border-b border-border bg-bg px-2 pt-safe-t transition-[transform,opacity]", fullscreen && "absolute inset-x-0 top-0 shadow-md", fullscreen && chromeHidden && "pointer-events-none -translate-y-full opacity-0")}>
         <IconButton label="Back" onClick={back}><ArrowLeft /></IconButton>
         <IconButton label="Contents & bookmarks" shortcut="Ctrl+[" active={leftOpen} onClick={() => setLeftOpen(!leftOpen)}><PanelLeft /></IconButton>
         <div className="mx-2 min-w-0 flex-1">
           <div className="truncate text-[13px] font-semibold leading-tight">{doc.title}</div>
-          <div className="truncate text-[11.5px] text-muted">{[doc.author, location?.label].filter(Boolean).join(" · ")}</div>
+          <div className="truncate text-[12px] text-muted">{[doc.author, location?.label].filter(Boolean).join(" · ")}</div>
         </div>
         {doc.format === "pdf" && <PdfZoomControls />}
         {/* On phones, page turns are tap zones and find lives in the Contents panel. */}

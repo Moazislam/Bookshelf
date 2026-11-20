@@ -79,13 +79,13 @@ function EditDocumentDialog() {
   return (
     <Dialog open onOpenChange={(o) => !o && close()}>
       <DialogContent title="Edit details" wide>
-        <form onSubmit={save} className="grid grid-cols-[150px_1fr] gap-6">
+        <form onSubmit={save} className="grid grid-cols-[150px_1fr] gap-6 max-md:grid-cols-1">
           <div className="flex flex-col gap-2">
             <DocumentCover doc={doc} className="aspect-[2/3] w-full rounded-md shadow-md" />
             <Button size="sm" onClick={() => changeCover(doc)}>
               <ImagePlus /> Change cover
             </Button>
-            <dl className="mt-2 space-y-1.5 text-[11.5px] text-muted">
+            <dl className="mt-2 space-y-1.5 text-[12px] text-muted">
               <div><dt className="text-subtle">Format</dt><dd>{FORMAT_LABEL[doc.format]}</dd></div>
               <div><dt className="text-subtle">Size</dt><dd>{formatBytes(doc.fileSize)}</dd></div>
               {doc.pageCount != null && <div><dt className="text-subtle">{doc.format === "epub" ? "Sections" : "Pages"}</dt><dd>{doc.pageCount}</dd></div>}
@@ -120,7 +120,7 @@ function EditDocumentDialog() {
             </Field>
             <Field label="Collections">
               {collections.length === 0 ? (
-                <p className="text-[12.5px] text-subtle">No collections yet.</p>
+                <p className="text-[13px] text-subtle">No collections yet.</p>
               ) : (
                 <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto">
                   {collectionOptions(collections).map((c) => {
@@ -131,7 +131,7 @@ function EditDocumentDialog() {
                         type="button"
                         key={c.id}
                         onClick={() => setCollectionIds(on ? collectionIds.filter((x) => x !== c.id) : [...collectionIds, c.id])}
-                        className={cn("inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12.5px] transition-colors", on ? "border-accent/40 bg-accent-soft text-fg" : "border-border text-muted hover:text-fg")}
+                        className={cn("inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[13px] transition-colors", on ? "border-accent/40 bg-accent-soft text-fg" : "border-border text-muted hover:text-fg")}
                       >
                         <span className="size-2 rounded-full" style={{ background: swatch(col.color) }} />
                         {c.label}
@@ -179,7 +179,7 @@ function RemoveDocumentsDialog() {
             </span>
           </label>}
           {deleteFiles && (
-            <p className="flex items-center gap-2 text-[12.5px] text-warning">
+            <p className="flex items-center gap-2 text-[13px] text-warning">
               <TriangleExclamationPoint className="size-4" /> The file{docs.length > 1 ? "s" : ""} can be restored from the Recycle Bin.
             </p>
           )}

@@ -73,7 +73,7 @@ function Toolbar({ editor }: { editor: Editor }) {
 export function SaveIndicator({ state }: { state: SaveState }) {
   const label = { saved: "Saved", saving: "Saving…", dirty: "Unsaved changes", error: "Could not save — retrying" }[state];
   return (
-    <span className={cn("flex items-center gap-1.5 text-[11.5px]", state === "error" ? "text-danger" : "text-subtle")}>
+    <span className={cn("flex items-center gap-1.5 text-[12px]", state === "error" ? "text-danger" : "text-subtle")}>
       <span className={cn("size-1.5 rounded-full", state === "saved" ? "bg-success" : state === "error" ? "bg-danger" : "bg-warning animate-pulse")} />
       {label}
     </span>
@@ -152,7 +152,7 @@ export function NoteEditor({ note, onSaved, compact, autoFocus }: { note: Note; 
           schedule({ title: e.target.value });
         }}
         placeholder="Untitled note"
-        className={cn("w-full bg-transparent font-serif font-semibold outline-none placeholder:text-subtle", compact ? "text-[16px]" : "text-[26px]")}
+        className={cn("w-full bg-transparent font-serif font-medium outline-none placeholder:text-subtle", compact ? "text-[16px]" : "text-[26px]")}
       />
       <div className={cn("flex items-center justify-between gap-2 border-y border-border py-1.5", compact && "py-1")}>
         <Toolbar editor={editor} />

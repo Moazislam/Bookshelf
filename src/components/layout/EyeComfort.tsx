@@ -64,18 +64,18 @@ export function EyeComfortControls({ compact }: { compact?: boolean }) {
         <Switch checked={v["comfort.enabled"]} onChange={(x) => set("comfort.enabled", x)} label="Eye comfort" />
       </label>
       <div className={cn(!active && "opacity-60")}>
-        <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wider text-subtle"><span>Warmth</span><span className="tabular-nums">{v["comfort.warmth"]}%</span></div>
+        <div className="mb-1.5 flex justify-between text-[12px] font-medium text-subtle"><span>Warmth</span><span className="tabular-nums">{v["comfort.warmth"]}%</span></div>
         <Slider value={v["comfort.warmth"]} min={0} max={100} step={5} onChange={(x) => set("comfort.warmth", x)} label="Warmth" />
       </div>
       <div className={cn(!active && "opacity-60")}>
-        <div className="mb-1.5 flex justify-between text-[11px] font-semibold uppercase tracking-wider text-subtle"><span>Dim screen</span><span className="tabular-nums">{v["comfort.dim"]}%</span></div>
+        <div className="mb-1.5 flex justify-between text-[12px] font-medium text-subtle"><span>Dim screen</span><span className="tabular-nums">{v["comfort.dim"]}%</span></div>
         <Slider value={v["comfort.dim"]} min={0} max={60} step={5} onChange={(x) => set("comfort.dim", x)} label="Dim screen" />
       </div>
       <div>
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle">Turn on automatically</div>
+        <div className="mb-2 text-[12px] font-medium text-subtle">Turn on automatically</div>
         <SegmentedControl size="sm" value={v["comfort.schedule"]} onChange={(x) => set("comfort.schedule", x)} options={[{ value: "manual", label: "Off" }, { value: "scheduled", label: "On a schedule" }]} />
         {v["comfort.schedule"] === "scheduled" && (
-          <div className="mt-2.5 flex items-center gap-2 text-[12.5px] text-muted">
+          <div className="mt-2.5 flex items-center gap-2 text-[13px] text-muted">
             From
             <input type="time" value={v["comfort.from"]} onChange={(e) => e.target.value && set("comfort.from", e.target.value)} className="h-7 rounded-md border border-border bg-surface px-2 text-fg" />
             to

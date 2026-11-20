@@ -4,7 +4,7 @@ import { useBreadcrumbs } from "@/hooks";
 function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="px-4 md:px-8 pb-2 pt-7">
-      <h1 className="font-serif text-[28px] font-semibold leading-tight">{title}</h1>
+      <h1 className="font-serif text-[28px] font-medium leading-tight">{title}</h1>
       {subtitle && <p className="mt-1 text-[13px] text-muted">{subtitle}</p>}
     </div>
   );

@@ -19,7 +19,7 @@ export function EngineError({ message }: { message: string }) {
         <div className="mx-auto mb-4 grid size-12 place-items-center rounded-xl border border-border bg-surface">
           <FileWarning className="size-5 text-danger" />
         </div>
-        <h3 className="font-serif text-lg font-semibold">This document could not be opened</h3>
+        <h3 className="font-serif text-lg font-medium">This document could not be opened</h3>
         <p className="mt-2 text-[13px] text-muted">{message}</p>
         <p className="mt-1 text-[12px] text-subtle">The file may be damaged, password-protected, or moved. Use “Locate file…” from its menu if it was moved.</p>
       </div>

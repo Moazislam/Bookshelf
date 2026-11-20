@@ -24,8 +24,8 @@ function Row({ label, description, children }: { label: string; description?: st
   return (
     <div className="flex flex-col items-start gap-3 border-b border-border py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="min-w-0">
-        <div className="text-[13.5px] font-medium">{label}</div>
-        {description && <div className="mt-0.5 text-[12.5px] text-muted">{description}</div>}
+        <div className="text-[14px] font-medium">{label}</div>
+        {description && <div className="mt-0.5 text-[13px] text-muted">{description}</div>}
       </div>
       <div className="max-w-full shrink-0 overflow-x-auto">{children}</div>
     </div>
@@ -35,7 +35,7 @@ function Row({ label, description, children }: { label: string; description?: st
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-1 font-serif text-[19px] font-semibold">{title}</h2>
+      <h2 className="mb-1 font-serif text-[19px] font-medium">{title}</h2>
       <div className="rounded-xl border border-border bg-surface px-5 shadow-sm">{children}</div>
     </section>
   );
@@ -77,15 +77,15 @@ function Appearance() {
         <SegmentedControl value={v["appearance.theme"]} onChange={(x) => set("appearance.theme", x)} options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "system", label: "System" }]} />
       </Row>
       <div className="border-b border-border py-4">
-        <div className="text-[13.5px] font-medium">Light theme</div>
-        <div className="mt-0.5 text-[12.5px] text-muted">Used in Light mode, and in System mode during the day.</div>
+        <div className="text-[14px] font-medium">Light theme</div>
+        <div className="mt-0.5 text-[13px] text-muted">Used in Light mode, and in System mode during the day.</div>
         <div className="mt-3 flex flex-wrap gap-4">
           {LIGHT_PALETTES.map((p) => <PaletteCard key={p.id} p={p} selected={v["appearance.lightPalette"] === p.id} onSelect={() => set("appearance.lightPalette", p.id)} />)}
         </div>
       </div>
       <div className="border-b border-border py-4">
-        <div className="text-[13.5px] font-medium">Dark theme</div>
-        <div className="mt-0.5 text-[12.5px] text-muted">Used in Dark mode, and in System mode at night.</div>
+        <div className="text-[14px] font-medium">Dark theme</div>
+        <div className="mt-0.5 text-[13px] text-muted">Used in Dark mode, and in System mode at night.</div>
         <div className="mt-3 flex flex-wrap gap-4">
           {DARK_PALETTES.map((p) => <PaletteCard key={p.id} p={p} selected={v["appearance.darkPalette"] === p.id} onSelect={() => set("appearance.darkPalette", p.id)} />)}
         </div>
@@ -382,7 +382,7 @@ function Shortcuts() {
           <ShortcutRecorder value={shortcuts[k] ?? DEFAULT_SHORTCUTS[k]} onChange={(v) => set("shortcuts", { ...shortcuts, [k]: v })} />
         </Row>
       ))}
-      <div className="flex items-center justify-between py-4 text-[12.5px] text-muted">
+      <div className="flex items-center justify-between py-4 text-[13px] text-muted">
         <span>In the reader, ← → / Page Up / Page Down turn pages and Esc closes popups.</span>
         <Button size="sm" variant="ghost" onClick={() => set("shortcuts", DEFAULT_SHORTCUTS)}><RotateCcw /> Reset to defaults</Button>
       </div>
@@ -396,7 +396,7 @@ export function SettingsPage() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-7 md:flex-row md:gap-10 md:px-8">
       <nav className="h-fit shrink-0 md:sticky md:top-7 md:w-48">
-        <h1 className="mb-5 font-serif text-[28px] font-semibold">Settings</h1>
+        <h1 className="mb-5 font-serif text-[28px] font-medium">Settings</h1>
         {/* Phones: the section list becomes a horizontally scrolling tab strip. */}
         <ul className="flex gap-1 overflow-x-auto [scrollbar-width:none] md:block md:space-y-0.5 [&_button]:max-md:whitespace-nowrap">
           {SECTIONS.map((s) => (

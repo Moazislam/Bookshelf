@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { save } from "@tauri-apps/plugin-dialog";
-import { BookOpen, Download, FileText, Highlighter, Pin, PinOff, Plus, Search, StickyNote, Trash } from "lucide-react";
+import { BookOpen, ChevronLeft, Download, MessageSquare, FileText, Highlighter, Pin, PinOff, Plus, Search, StickyNote, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/services/api";
 import { useBreadcrumbs, useAsync } from "@/hooks";
@@ -59,8 +59,8 @@ function NotesWorkspace() {
   const replace = (n: Note) => setData((notes ?? []).map((x) => (x.id === n.id ? n : x)));
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-[320px_1fr]">
-      <div className="flex min-h-0 flex-col border-r border-border">
+    <div className="grid min-h-0 flex-1 grid-cols-[320px_1fr] max-md:grid-cols-1">
+      <div className={cn("flex min-h-0 flex-col border-r border-border max-md:border-r-0", selected && "max-md:hidden")}>
         <div className="space-y-2 p-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -83,7 +83,7 @@ function NotesWorkspace() {
           {loading && !notes ? (
             Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="m-1 h-16" />)
           ) : filtered.length === 0 ? (
-            <p className="px-4 py-10 text-center text-[12.5px] text-subtle">{notes?.length ? "No notes match." : "No notes yet. Create one, or add notes while reading."}</p>
+            <p className="px-4 py-10 text-center text-[13px] text-subtle">{notes?.length ? "No notes match." : "No notes yet. Create one, or add notes while reading."}</p>
           ) : (
             filtered.map((n) => (
               <button
@@ -105,16 +105,19 @@ function NotesWorkspace() {
           )}
         </div>
       </div>
-      <div className="min-h-0 overflow-y-auto">
+      <div className={cn("min-h-0 overflow-y-auto", !selected && "max-md:hidden")}>
         {selected ? (
-          <div className="mx-auto flex max-w-3xl flex-col px-10 py-8">
+          <div className="mx-auto flex max-w-3xl flex-col px-4 py-5 md:px-10 md:py-8">
+            <button onClick={() => setParams({})} className="mb-3 flex items-center gap-1 self-start text-[13px] font-medium text-accent md:hidden">
+              <ChevronLeft className="size-4" /> Notes
+            </button>
             <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] text-muted">
               <span>Created {formatDate(selected.createdAt)}</span>
               <span>·</span>
               <Select
                 value={selected.documentId ?? ""}
                 onChange={async (e) => replace(await api.updateNote(selected.id, { documentId: e.target.value || null }))}
-                className="h-7 w-auto max-w-72 text-[12px]"
+                className="h-7 w-auto max-w-72 text-[12px] max-md:max-w-full"
                 aria-label="Linked document"
               >
                 <option value="">Not linked to a document</option>
@@ -203,21 +206,21 @@ function HighlightsWorkspace() {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border/60 bg-bg/90 px-4 md:px-8 py-3 backdrop-blur">
-        <div className="relative w-64">
+        <div className="relative w-full md:w-64">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-subtle" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search highlights…" className="h-8 pl-8" />
         </div>
-        <Select value={docId} onChange={(e) => setDocId(e.target.value)} className="h-8 w-56">
+        <Select value={docId} onChange={(e) => setDocId(e.target.value)} className="h-8 w-full md:w-56">
           <option value="">All documents</option>
           {docsWithHighlights.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}
         </Select>
         <div className="flex items-center gap-1.5">
-          <button onClick={() => setColor("")} className={cn("h-6 rounded-full px-2.5 text-[11.5px] font-medium", !color ? "bg-fg text-bg" : "text-muted hover:bg-bg-subtle")}>All</button>
+          <button onClick={() => setColor("")} className={cn("h-6 rounded-full px-2.5 text-[12px] font-medium", !color ? "bg-fg text-bg" : "text-muted hover:bg-bg-subtle")}>All</button>
           {(Object.keys(HL_SWATCH) as HighlightColor[]).map((c) => (
             <button key={c} onClick={() => setColor(c)} aria-label={c} className={cn("size-5 rounded-full border-2 border-bg", color === c && "ring-2 ring-fg/40")} style={{ background: HL_SWATCH[c] }} />
           ))}
         </div>
-        <Button className="ml-auto h-8" disabled={!filtered.length} onClick={() => exportMarkdown("highlights.md", highlightsToMarkdown(filtered))}>
+        <Button className="h-8 md:ml-auto" disabled={!filtered.length} onClick={() => exportMarkdown("highlights.md", highlightsToMarkdown(filtered))}>
           <Download /> Export Markdown
         </Button>
       </div>
@@ -231,7 +234,7 @@ function HighlightsWorkspace() {
             <section key={documentId} className="mb-8">
               <button onClick={() => navigate(`/read/${documentId}`)} className="mb-3 flex items-center gap-2 text-left hover:text-accent">
                 <FileText className="size-4 text-subtle" />
-                <h3 className="font-serif text-[17px] font-semibold">{items[0].documentTitle}</h3>
+                <h3 className="font-serif text-[17px] font-medium">{items[0].documentTitle}</h3>
                 <span className="text-[12px] text-subtle">{items.length}</span>
               </button>
               <div className="space-y-2">
@@ -240,7 +243,7 @@ function HighlightsWorkspace() {
                     <span className="w-1 shrink-0 rounded-full" style={{ background: HL_SWATCH[h.color] }} />
                     <span className="min-w-0 flex-1">
                       <span className="block font-reading text-[14px] leading-relaxed">{h.text}</span>
-                      {h.comment && <span className="mt-2 block text-[12.5px] text-muted">💬 {h.comment}</span>}
+                      {h.comment && <span className="mt-2 flex items-start gap-1.5 text-[13px] text-muted"><MessageSquare className="mt-0.5 size-3.5 shrink-0" />{h.comment}</span>}
                       <span className="mt-1.5 block text-[11px] text-subtle">{[h.label, formatDate(h.createdAt)].filter(Boolean).join(" · ")}</span>
                     </span>
                   </button>
@@ -260,9 +263,9 @@ export function NotesPage() {
   useBreadcrumbs([{ label: "Notes & Highlights" }]);
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-end justify-between px-4 md:px-8 pb-4 pt-7">
+      <div className="flex items-end justify-between gap-3 px-4 md:px-8 pb-4 pt-7 max-md:flex-col max-md:items-start">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold">Notes & Highlights</h1>
+          <h1 className="font-serif text-[24px] md:text-[28px] font-medium">Notes & Highlights</h1>
           <p className="mt-1 text-[13px] text-muted">Your thinking, connected to what you read.</p>
         </div>
         <SegmentedControl

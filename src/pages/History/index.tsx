@@ -34,7 +34,7 @@ export function HistoryPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-8 py-7">
-      <h1 className="font-serif text-[28px] font-semibold">Reading History</h1>
+      <h1 className="font-serif text-[28px] font-medium">Reading History</h1>
       <p className="mt-1 text-[13px] text-muted">Every reading session, as it actually happened.</p>
       <div className="mt-8">
         {loading && !data ? (
@@ -47,7 +47,7 @@ export function HistoryPage() {
             return (
               <section key={day} className="mb-8">
                 <div className="mb-3 flex items-baseline justify-between border-b border-border pb-2">
-                  <h2 className="font-serif text-[17px] font-semibold">{dayLabel(day)}</h2>
+                  <h2 className="font-serif text-[17px] font-medium">{dayLabel(day)}</h2>
                   <span className="text-[12px] text-subtle">{formatDuration(total)} read</span>
                 </div>
                 <ol className="space-y-1">
@@ -61,7 +61,7 @@ export function HistoryPage() {
                           </span>
                           {doc ? <DocumentCover doc={doc} small className="h-11 w-8 shrink-0 rounded-[3px] shadow-sm" /> : <span className="h-11 w-8 shrink-0 rounded-[3px] bg-border" />}
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[13.5px] font-medium">{e.documentTitle}</span>
+                            <span className="block truncate text-[14px] font-medium">{e.documentTitle}</span>
                             <span className="text-[12px] text-muted">
                               {FORMAT_LABEL[e.format]} · {formatDuration(e.activeSeconds)}
                               {e.pagesRead > 0 && ` · ${e.pagesRead} ${e.format === "epub" || e.format === "txt" || e.format === "md" ? "screens" : "pages"}`}

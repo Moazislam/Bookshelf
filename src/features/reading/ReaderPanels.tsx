@@ -82,7 +82,7 @@ function PanelTabs<T extends string>({ value, onChange, tabs }: { value: T; onCh
         <button
           key={t.value}
           onClick={() => onChange(t.value)}
-          className={cn("relative h-8 shrink-0 rounded-t-md px-2 text-[12.5px] font-medium transition-colors", value === t.value ? "text-fg" : "text-subtle hover:text-muted")}
+          className={cn("relative h-8 shrink-0 rounded-t-md px-2 text-[13px] font-medium transition-colors", value === t.value ? "text-fg" : "text-subtle hover:text-muted")}
         >
           {t.label}
           {t.count ? <span className="ml-1.5 text-[11px] text-subtle">{t.count}</span> : null}
@@ -124,7 +124,7 @@ function TocNode({ item, depth, engine, current }: { item: TocItem; depth: numbe
         <button
           disabled={!item.locator}
           onClick={() => item.locator && engine?.goTo(item.locator)}
-          className={cn("min-w-0 flex-1 truncate py-1.5 pr-2 text-left text-[12.5px]", isCurrent ? "font-medium text-fg" : "text-muted group-hover:text-fg", !item.locator && "opacity-50")}
+          className={cn("min-w-0 flex-1 truncate py-1.5 pr-2 text-left text-[13px]", isCurrent ? "font-medium text-fg" : "text-muted group-hover:text-fg", !item.locator && "opacity-50")}
           title={item.label}
         >
           {item.label}
@@ -161,7 +161,7 @@ function BookmarksTab() {
         </Button>
       </div>
       {bookmarks.length === 0 ? (
-        <p className="px-4 py-6 text-center text-[12.5px] text-subtle">No bookmarks yet. Press Ctrl+D to bookmark where you are.</p>
+        <p className="px-4 py-6 text-center text-[13px] text-subtle">No bookmarks yet. Press Ctrl+D to bookmark where you are.</p>
       ) : (
         <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
           {bookmarks.map((b) => (
@@ -175,12 +175,12 @@ function BookmarksTab() {
                     setEditing(null);
                   }}
                 >
-                  <Input autoFocus value={label} onChange={(e) => setLabel(e.target.value)} onBlur={() => setEditing(null)} className="h-7 text-[12.5px]" />
+                  <Input autoFocus value={label} onChange={(e) => setLabel(e.target.value)} onBlur={() => setEditing(null)} className="h-7 text-[13px]" />
                 </form>
               ) : (
                 <div className="flex items-start gap-2">
                   <button className="min-w-0 flex-1 text-left" onClick={() => engine?.goTo(b.locator)}>
-                    <div className="line-clamp-2 text-[12.5px] font-medium">{b.label}</div>
+                    <div className="line-clamp-2 text-[13px] font-medium">{b.label}</div>
                     <div className="text-[11px] text-subtle">{relativeTime(b.createdAt)}</div>
                   </button>
                   <div className="flex opacity-0 group-hover:opacity-100">
@@ -256,12 +256,12 @@ function SearchTab() {
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {loading && <div className="flex justify-center py-4"><Spinner className="text-subtle" /></div>}
         {!doc.textIndexed && doc.format === "pdf" && <p className="px-3 py-2 text-[12px] text-warning">This PDF is still being indexed — results may be incomplete.</p>}
-        {doc.format === "cbz" && <p className="px-3 py-4 text-center text-[12.5px] text-subtle">Comics contain images only, so there is no text to search.</p>}
-        {sorted && sorted.length === 0 && !loading && <p className="px-3 py-6 text-center text-[12.5px] text-subtle">No matches for “{dq}”.</p>}
+        {doc.format === "cbz" && <p className="px-3 py-4 text-center text-[13px] text-subtle">Comics contain images only, so there is no text to search.</p>}
+        {sorted && sorted.length === 0 && !loading && <p className="px-3 py-6 text-center text-[13px] text-subtle">No matches for “{dq}”.</p>}
         {sorted?.map((h, i) => (
           <button key={i} onClick={() => engine?.goTo(h.locator)} className="block w-full rounded-md px-2.5 py-2 text-left hover:bg-bg-subtle">
             <div className="mb-0.5 text-[11px] font-medium text-subtle">{h.label ?? (doc.format === "pdf" ? `Page ${h.locator}` : "Match")}</div>
-            <div className="line-clamp-3 text-[12.5px] text-muted">
+            <div className="line-clamp-3 text-[13px] text-muted">
               {snippetParts(h.snippet).map((p, j) => (p.hit ? <mark key={j} className="rounded-sm bg-accent-soft px-0.5 text-fg">{p.text}</mark> : <span key={j}>{p.text}</span>))}
             </div>
           </button>
@@ -296,7 +296,7 @@ export function LeftPanel({ tab, setTab }: { tab: LeftTab; setTab: (t: LeftTab) 
             <TocTree items={toc} depth={0} current={location?.label} />
           </div>
         ) : (
-          <p className="px-4 py-8 text-center text-[12.5px] text-subtle">This document has no table of contents.</p>
+          <p className="px-4 py-8 text-center text-[13px] text-subtle">This document has no table of contents.</p>
         ))}
       {current === "pages" && doc.format === "pdf" && <div className="min-h-0 flex-1"><PdfThumbnails current={location?.page ?? 1} onPick={(p) => engine?.goTo(String(p))} /></div>}
       {current === "pages" && doc.format === "cbz" && <div className="min-h-0 flex-1"><ComicThumbnails doc={doc} current={location?.page ?? 1} onPick={(p) => engine?.goTo(String(p))} /></div>}
@@ -320,13 +320,13 @@ function HighlightsTab() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1.5 px-3 py-2.5">
-        <button onClick={() => setFilter("all")} className={cn("h-6 rounded-full px-2.5 text-[11.5px] font-medium", filter === "all" ? "bg-fg text-bg" : "text-muted hover:bg-bg-subtle")}>All</button>
+        <button onClick={() => setFilter("all")} className={cn("h-6 rounded-full px-2.5 text-[12px] font-medium", filter === "all" ? "bg-fg text-bg" : "text-muted hover:bg-bg-subtle")}>All</button>
         {(Object.keys(HL_SWATCH) as HighlightColor[]).map((c) => (
           <button key={c} onClick={() => setFilter(c)} aria-label={`Show ${c}`} className={cn("size-5 rounded-full border-2 border-sidebar", filter === c && "ring-2 ring-fg/40")} style={{ background: HL_SWATCH[c] }} />
         ))}
       </div>
       {shown.length === 0 ? (
-        <p className="px-5 py-8 text-center text-[12.5px] text-subtle">{highlights.length ? "No highlights in this colour." : "Select text in the document to highlight it."}</p>
+        <p className="px-5 py-8 text-center text-[13px] text-subtle">{highlights.length ? "No highlights in this colour." : "Select text in the document to highlight it."}</p>
       ) : (
         <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-3">
           {shown.map((h) => (
@@ -384,7 +384,7 @@ function NotesTab({ openNoteId, setOpenNoteId }: { openNoteId: string | null; se
           </Button>
         </div>
         {open.highlightText && (
-          <blockquote className="mx-3 mb-2 border-l-2 border-accent pl-3 font-reading text-[12.5px] italic text-muted line-clamp-4">{open.highlightText}</blockquote>
+          <blockquote className="mx-3 mb-2 border-l-2 border-accent pl-3 font-reading text-[13px] italic text-muted line-clamp-4">{open.highlightText}</blockquote>
         )}
         <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
           <NoteEditor key={open.id} note={open} compact autoFocus onSaved={(n) => setNotes((ns) => ns?.map((x) => (x.id === n.id ? n : x)) ?? ns)} />
@@ -400,7 +400,7 @@ function NotesTab({ openNoteId, setOpenNoteId }: { openNoteId: string | null; se
       {notes === null ? (
         <div className="flex justify-center py-6"><Spinner className="text-subtle" /></div>
       ) : notes.length === 0 ? (
-        <p className="px-5 py-6 text-center text-[12.5px] text-subtle">Notes you write about this document live here and in your Notes workspace.</p>
+        <p className="px-5 py-6 text-center text-[13px] text-subtle">Notes you write about this document live here and in your Notes workspace.</p>
       ) : (
         <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-3">
           {notes.map((n) => (
@@ -438,16 +438,16 @@ function InfoTab() {
   ];
   return (
     <div className="min-h-0 flex-1 overflow-y-auto p-4">
-      <h3 className="font-serif text-[18px] font-semibold leading-snug">{live.title}</h3>
+      <h3 className="font-serif text-[18px] font-medium leading-snug">{live.title}</h3>
       <div className="mt-3">
-        <div className="mb-1 flex justify-between text-[11.5px] text-subtle">
+        <div className="mb-1 flex justify-between text-[12px] text-subtle">
           <span>Progress</span>
           <span>{Math.round((location?.progress ?? live.progress) * 100)}%</span>
         </div>
         <Progress value={location?.progress ?? live.progress} />
       </div>
-      {live.description && <p className="mt-4 text-[12.5px] leading-relaxed text-muted">{live.description}</p>}
-      <dl className="mt-4 divide-y divide-border text-[12.5px]">
+      {live.description && <p className="mt-4 text-[13px] leading-relaxed text-muted">{live.description}</p>}
+      <dl className="mt-4 divide-y divide-border text-[13px]">
         {rows.map(([k, v]) => (
           <div key={k} className="flex justify-between gap-4 py-1.5">
             <dt className="text-subtle">{k}</dt>

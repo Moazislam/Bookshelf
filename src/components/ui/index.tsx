@@ -24,7 +24,7 @@ export const buttonVariants = cva(
         link: "text-accent underline-offset-4 hover:underline px-0",
       },
       size: {
-        sm: "h-7 px-2.5 text-[12.5px] [&_svg]:size-3.5",
+        sm: "h-7 px-2.5 text-[13px] [&_svg]:size-3.5",
         md: "h-8.5 px-3.5 text-[13px] [&_svg]:size-4",
         lg: "h-10 px-5 text-sm [&_svg]:size-4",
         icon: "size-8 [&_svg]:size-4",
@@ -76,7 +76,7 @@ export function Field({ label, hint, children, className }: { label: string; hin
     <div className={cn("flex flex-col gap-1.5", className)}>
       <Label>{label}</Label>
       {children}
-      {hint && <p className="text-[11.5px] text-subtle">{hint}</p>}
+      {hint && <p className="text-[12px] text-subtle">{hint}</p>}
     </div>
   );
 }
@@ -126,19 +126,19 @@ export function Badge({ className, tone = "neutral", ...props }: React.HTMLAttri
     warning: "bg-warning/10 text-warning border-warning/25",
     danger: "bg-danger/10 text-danger border-danger/20",
   };
-  return <span className={cn("inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-px text-[10.5px] font-semibold uppercase tracking-wide", tones[tone], className)} {...props} />;
+  return <span className={cn("inline-flex items-center gap-1 rounded-[5px] border px-1.5 py-px text-[11px] font-medium", tones[tone], className)} {...props} />;
 }
 
 export function Progress({ value, className, tone = "accent" }: { value: number; className?: string; tone?: "accent" | "success" }) {
   return (
     <div className={cn("h-1 w-full overflow-hidden rounded-full bg-border/70", className)} role="progressbar" aria-valuenow={Math.round(value * 100)} aria-valuemin={0} aria-valuemax={100}>
-      <div className={cn("h-full rounded-full transition-[width] duration-500", tone === "success" ? "bg-success" : "bg-accent")} style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%` }} />
+      <div className={cn("h-full w-full origin-left transition-transform duration-500", tone === "success" ? "bg-success" : "bg-accent")} style={{ transform: `scaleX(${Math.max(0, Math.min(1, value))})` }} />
     </div>
   );
 }
 
 export function Kbd({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <kbd className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface-2 px-1 font-sans text-[10.5px] font-medium text-muted shadow-sm", className)}>{children}</kbd>;
+  return <kbd className={cn("inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-surface-2 px-1 font-sans text-[11px] font-medium text-muted shadow-sm", className)}>{children}</kbd>;
 }
 
 export function Skeleton({ className }: { className?: string }) {
@@ -155,7 +155,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
       <div className="mb-4 grid size-12 place-items-center rounded-xl border border-border bg-surface shadow-sm">
         <Icon className="size-5 text-muted" />
       </div>
-      <h3 className="font-serif text-lg font-semibold">{title}</h3>
+      <h3 className="font-serif text-lg font-medium">{title}</h3>
       {description && <p className="mt-1.5 max-w-sm text-[13px] text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -177,8 +177,8 @@ export function SegmentedControl<T extends string>({ value, onChange, options, c
           title={o.title}
           onClick={() => onChange(o.value)}
           className={cn(
-            "inline-flex items-center justify-center gap-1.5 rounded-[5px] font-medium transition-all [&_svg]:size-3.5",
-            size === "sm" ? "h-6 px-2 text-[12px]" : "h-7 px-2.5 text-[12.5px]",
+            "inline-flex items-center justify-center gap-1.5 rounded-[5px] font-medium transition-[color,background-color,border-color,transform] active:scale-[0.98] [&_svg]:size-3.5",
+            size === "sm" ? "h-6 px-2 text-[12px]" : "h-7 px-2.5 text-[13px]",
             value === o.value ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg",
           )}
         >
@@ -209,7 +209,7 @@ export function DialogContent({ className, children, title, description, wide, .
       >
         <div className="flex items-start justify-between gap-4 px-5 pt-5">
           <div>
-            <DialogPrimitive.Title className="font-serif text-[17px] font-semibold">{title}</DialogPrimitive.Title>
+            <DialogPrimitive.Title className="font-serif text-[17px] font-medium">{title}</DialogPrimitive.Title>
             {description ? (
               <DialogPrimitive.Description className="mt-1 text-[13px] text-muted">{description}</DialogPrimitive.Description>
             ) : (
@@ -264,7 +264,7 @@ export function DropdownMenuCheckboxItem({ className, children, ...props }: Reac
   );
 }
 export function DropdownMenuLabel({ className, ...props }: React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Label>) {
-  return <DropdownPrimitive.Label className={cn("px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-subtle", className)} {...props} />;
+  return <DropdownPrimitive.Label className={cn("px-2 pb-1 pt-2 text-[12px] font-medium text-subtle", className)} {...props} />;
 }
 export function DropdownMenuSeparator() {
   return <DropdownPrimitive.Separator className="my-1 h-px bg-border" />;
@@ -346,7 +346,7 @@ export function Tooltip({ content, children, side = "bottom", shortcut }: { cont
     <TooltipPrimitive.Root>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Content side={side} sideOffset={6} className="z-[60] flex items-center gap-2 rounded-md bg-fg px-2 py-1 text-[11.5px] font-medium text-bg shadow-md data-[state=delayed-open]:animate-fade-in">
+        <TooltipPrimitive.Content side={side} sideOffset={6} className="z-[60] flex items-center gap-2 rounded-md bg-fg px-2 py-1 text-[12px] font-medium text-bg shadow-md data-[state=delayed-open]:animate-fade-in">
           {content}
           {shortcut && <span className="opacity-60">{shortcut}</span>}
         </TooltipPrimitive.Content>

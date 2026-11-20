@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BookOpen, CircleCheck, Clock, FileText, Flame, Highlighter, Library, StickyNote, ChartColumn } from "lucide-react";
+import { ChartColumn } from "lucide-react";
 import { api } from "@/services/api";
 import { useAsync, useBreadcrumbs } from "@/hooks";
 import { EmptyState, SegmentedControl, Skeleton } from "@/components/ui";
@@ -9,7 +9,7 @@ import type { DocFormat, ReadingStatus } from "@/types";
 
 const tooltipStyle = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, color: "var(--fg)" };
 const axis = { fontSize: 11, fill: "var(--fg-subtle)" };
-const PALETTE = ["var(--accent)", "#5a77c0", "#5f8f68", "#c99a2e", "#9467a8", "#3f8f8a", "#c45b72", "#7c8593"];
+const PALETTE = ["var(--accent)", "var(--fg-muted)", "var(--fg-subtle)", "var(--border-strong)", "var(--border)", "var(--bg-subtle)", "var(--fg-muted)", "var(--fg-subtle)"];
 
 function Card({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
@@ -20,11 +20,11 @@ function Card({ title, children, className = "" }: { title: string; children: Re
   );
 }
 
-function Metric({ icon: Icon, label, value, hint }: { icon: React.ComponentType<{ className?: string }>; label: string; value: React.ReactNode; hint?: string }) {
+function Metric({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-[12px] text-muted"><Icon className="size-3.5" /> {label}</div>
-      <div className="mt-2 font-serif text-[26px] font-semibold tabular-nums leading-none">{value}</div>
+      <div className="text-[12px] text-muted">{label}</div>
+      <div className="mt-2 font-serif text-[26px] font-medium tabular-nums leading-none">{value}</div>
       {hint && <div className="mt-1.5 text-[11px] text-subtle">{hint}</div>}
     </div>
   );
@@ -61,23 +61,23 @@ export function StatisticsPage() {
 
   return (
     <div className="mx-auto max-w-[1240px] px-4 md:px-8 py-7">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3 max-md:flex-col max-md:items-start">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold">Statistics</h1>
+          <h1 className="font-serif text-[24px] md:text-[28px] font-medium">Statistics</h1>
           <p className="mt-1 text-[13px] text-muted">Derived only from your recorded reading sessions and library.</p>
         </div>
         <SegmentedControl value={days} onChange={setDays} options={[{ value: "30", label: "30 days" }, { value: "90", label: "90 days" }, { value: "365", label: "Year" }]} />
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Metric icon={Library} label="Documents" value={t.documents} hint={`${t.unread} unread`} />
-        <Metric icon={CircleCheck} label="Completed" value={t.completed} hint={t.documents ? `${Math.round((t.completed / t.documents) * 100)}% of library` : undefined} />
-        <Metric icon={BookOpen} label="Currently reading" value={t.reading} />
-        <Metric icon={Flame} label="Current streak" value={`${data.streakDays} ${data.streakDays === 1 ? "day" : "days"}`} />
-        <Metric icon={Clock} label="Total reading time" value={formatDuration(t.readingSeconds)} hint={`${t.sessions} sessions`} />
-        <Metric icon={FileText} label="Pages read" value={t.pagesRead.toLocaleString()} hint="Pages / screens viewed ≥ 4s" />
-        <Metric icon={Highlighter} label="Highlights" value={t.highlights} />
-        <Metric icon={StickyNote} label="Notes" value={t.notes} hint={`${t.bookmarks} bookmarks`} />
+        <Metric label="Documents" value={t.documents} hint={`${t.unread} unread`} />
+        <Metric label="Completed" value={t.completed} hint={t.documents ? `${Math.round((t.completed / t.documents) * 100)}% of library` : undefined} />
+        <Metric label="Currently reading" value={t.reading} />
+        <Metric label="Current streak" value={`${data.streakDays} ${data.streakDays === 1 ? "day" : "days"}`} />
+        <Metric label="Total reading time" value={formatDuration(t.readingSeconds)} hint={`${t.sessions} sessions`} />
+        <Metric label="Pages read" value={t.pagesRead.toLocaleString()} hint="Pages / screens viewed ≥ 4s" />
+        <Metric label="Highlights" value={t.highlights} />
+        <Metric label="Notes" value={t.notes} hint={`${t.bookmarks} bookmarks`} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -161,7 +161,7 @@ export function StatisticsPage() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <p className="grid h-[200px] place-items-center text-center text-[12.5px] text-subtle">Read documents that belong to collections to see this breakdown.</p>
+            <p className="grid h-[200px] place-items-center text-center text-[13px] text-subtle">Read documents that belong to collections to see this breakdown.</p>
           )}
         </Card>
       </div>
