@@ -39,6 +39,7 @@ export function ComicEngine({ doc, initial }: { doc: Document; initial: string |
       engine: {
         goTo: (loc) => goTo(parseInt(loc, 10) || 1),
         goToHighlight: () => {},
+        goToPage: goTo,
         next: () => goTo(pagesShown[pagesShown.length - 1] + 1),
         prev: () => goTo(page - step),
         bookmarkTarget: () => ({ locator: String(page), label: `Page ${page}`, sortKey: page }),

@@ -27,6 +27,7 @@ import { useReader } from "@/features/reading/store";
 import { useReadingSession } from "@/features/reading/session";
 import { LeftPanel, RightPanel, SidePanel, type LeftTab, type RightTab } from "@/features/reading/ReaderPanels";
 import { HighlightPopover, SelectionPopover } from "@/features/reading/AnnotationPopovers";
+import { PageScrubber } from "@/features/reading/PageScrubber";
 import { PdfEngine, type ZoomMode } from "@/features/reading/engines/PdfEngine";
 import { EpubEngine } from "@/features/reading/engines/EpubEngine";
 import { TextEngine } from "@/features/reading/engines/TextEngine";
@@ -418,6 +419,7 @@ export function ReaderPage() {
               <button aria-label="Next page" className="absolute inset-y-0 right-0 z-10 w-[14%] md:hidden" onClick={() => engine?.next()} />
             </>
           )}
+          <PageScrubber key={doc.id} />
         </main>
         <SidePanel side="right" open={rightOpen && !fullscreen} storageKey="bookshelf.reader.rightWidth">
           <RightPanel tab={rightTab} setTab={setRightTab} openNoteId={openNoteId} setOpenNoteId={setOpenNoteId} />

@@ -265,6 +265,11 @@ export function EpubEngine({ doc, initial }: { doc: Document; initial: string | 
           if (h.anchor.kind === "epub") rendRef.current?.display(h.anchor.cfi).catch(() => {});
           set({ activeHighlight: null });
         },
+        goToPage: (p) => {
+          const b = bookRef.current;
+          if (!b?.locations.length()) return;
+          rendRef.current?.display(b.locations.cfiFromLocation(p - 1)).catch(() => {});
+        },
         next: () => void rendRef.current?.next(),
         prev: () => void rendRef.current?.prev(),
         clearSelection: () => {
