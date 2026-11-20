@@ -2,7 +2,7 @@
 
 A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markdown files. You can import, organise, read, highlight, bookmark and take notes, with no account and no cloud.
 
-**[Download the latest release](https://github.com/Moazislam/Bookshelf/releases/latest)** for Windows, macOS or Linux.
+**[Download the latest release](https://github.com/Moazislam/Bookshelf/releases/latest)** for Windows, macOS, Linux or Android.
 
 ## Screenshots
 
@@ -36,7 +36,7 @@ A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markd
 - **Eye comfort:** a warm blue-light filter with adjustable warmth and screen dimming that covers the whole window, including book pages. Turn it on from the eye icon or with Ctrl+Shift+E, or schedule it (e.g. 21:00–07:00).
 - **Data:** zip backup and restore, Markdown/JSON export, database maintenance, and configurable keyboard shortcuts.
 
-Original files are never modified. Removing a document only deletes files when you explicitly ask, and even then they go to the Recycle Bin.
+Original files are never modified. On desktop, removing a document only deletes files when you explicitly ask, and even then they go to the Recycle Bin.
 
 ## Development
 
@@ -93,6 +93,48 @@ The installers are not code-signed, so the first launch shows a warning:
 - **Windows:** SmartScreen → *More info* → *Run anyway*.
 - **macOS:** right-click the app → *Open*. If macOS says the app is damaged, run `xattr -cr /Applications/BookShelf.app`.
 - **Linux:** no warning. Make the AppImage executable with `chmod +x`.
+- **Android:** download the `.apk` on your phone and open it. Android asks you to allow installs from your browser or file manager the first time.
+
+## Android
+
+The same app runs on Android, with a phone layout below 768 px wide. That layout has bottom tabs, a slide-in sidebar, and tap the left or right edge to turn EPUB and comic pages. Every phone keeps its own library; there is no sync.
+
+On Android, imported files are copied into BookShelf's own storage, because apps can only keep reading files they own. The original file is never touched. Removing a book deletes that stored copy. *Show in folder*, folder import and drag & drop aren't available on phones.
+
+### Set up Android development (one time)
+
+1. Install [Android Studio](https://developer.android.com/studio). In **Settings → Languages & Frameworks → Android SDK**, install:
+   - on the *SDK Platforms* tab, the latest Android version
+   - on the *SDK Tools* tab, **Android SDK Build-Tools**, **NDK (Side by side)**, **Android SDK Command-line Tools** and **Android SDK Platform-Tools**
+2. Point the tools at it. On Windows (PowerShell), then restart your terminal:
+   ```powershell
+   [Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Android\Android Studio\jbr", "User")
+   [Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
+   $ndk = Get-ChildItem "$env:LOCALAPPDATA\Android\Sdk\ndk" | Sort-Object Name | Select-Object -Last 1
+   [Environment]::SetEnvironmentVariable("NDK_HOME", $ndk.FullName, "User")
+   ```
+3. Add the Rust targets for Android: `rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android`.
+4. In Android Studio's **Device Manager**, create a virtual phone (for example a Pixel with a recent Android version). Or plug in your own phone with [USB debugging](https://developer.android.com/studio/debug/dev-options) turned on.
+5. Generate the Android project once: `pnpm tauri android init`. This creates `src-tauri/gen/android`; commit it.
+
+### Run and build
+
+```bash
+pnpm android:dev      # runs on the emulator or connected phone, with hot reload
+pnpm android:build    # builds an APK in src-tauri/gen/android/app/build/outputs/apk/
+```
+
+In CI, the `android` job builds an APK for every push and attaches it to tagged releases. Without signing secrets it's a debug build, which installs fine for testing. For a release-signed APK, create a keystore once and **keep it safe**: you need the same key for every future update.
+
+```bash
+keytool -genkey -v -keystore bookshelf-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias bookshelf
+```
+
+Then add these repository secrets (Settings → Secrets and variables → Actions):
+- `ANDROID_KEYSTORE_BASE64`: the keystore file, base64-encoded
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS` (here, `bookshelf`)
+- `ANDROID_KEY_PASSWORD`
 
 ## Architecture
 

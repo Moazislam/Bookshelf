@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the "bg" colour token in src/styles/globals.css (dark). -->
+    <color name="bookshelf_bg">#151517</color>
+</resources>

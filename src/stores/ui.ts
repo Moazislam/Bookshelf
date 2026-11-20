@@ -11,6 +11,9 @@ export interface BackgroundTask {
 
 interface UIState {
   sidebarCollapsed: boolean;
+  /** Phone layout: the sidebar slides in as a drawer. */
+  mobileNavOpen: boolean;
+  setMobileNavOpen: (open: boolean) => void;
   searchOpen: boolean;
   tasks: Record<string, BackgroundTask>;
   breadcrumbs: { label: string; to?: string }[];
@@ -31,6 +34,8 @@ const readCollapsed = () => {
 
 export const useUI = create<UIState>((set, get) => ({
   sidebarCollapsed: readCollapsed(),
+  mobileNavOpen: false,
+  setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
   searchOpen: false,
   tasks: {},
   breadcrumbs: [],

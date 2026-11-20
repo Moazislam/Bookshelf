@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { Upload } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { BottomNav } from "./BottomNav";
 import { SearchPalette } from "@/components/search/SearchPalette";
 import { useShortcut } from "@/hooks";
 import { useUI } from "@/stores/ui";
 import { useSettings } from "@/stores/settings";
 import { importPaths, pickAndImportFiles } from "@/features/documents/importer";
-import { isTauri } from "@/services/api";
+import { isMobile, isTauri } from "@/services/api";
 
 /** Window-level drag & drop. Tauri gives us real filesystem paths. */
 function useFileDrop() {
   const [dragging, setDragging] = useState(false);
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || isMobile()) return;
     let unlisten: (() => void) | undefined;
     getCurrentWebview()
       .onDragDropEvent((event) => {
@@ -50,6 +51,10 @@ export function GlobalShortcuts() {
 export function AppShell() {
   const dragging = useFileDrop();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navOpen = useUI((s) => s.mobileNavOpen);
+  const setNavOpen = useUI((s) => s.setMobileNavOpen);
+  useEffect(() => setNavOpen(false), [location.pathname, setNavOpen]);
   useEffect(() => {
     // Allow the reader's "back" to land somewhere sensible on first launch.
     const onNav = (e: Event) => navigate((e as CustomEvent<string>).detail);
@@ -59,12 +64,24 @@ export function AppShell() {
 
   return (
     <div className="flex h-full">
-      <Sidebar />
+      {/* Desktop and tablets: the usual sidebar. Phones: bottom tabs plus a slide-in drawer. */}
+      <div className="hidden h-full md:flex">
+        <Sidebar />
+      </div>
+      {navOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={() => setNavOpen(false)} />
+          <div className="absolute inset-y-0 left-0 shadow-lg animate-slide-in-left">
+            <Sidebar drawer />
+          </div>
+        </div>
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
         <main className="min-h-0 flex-1 overflow-y-auto" id="main-scroll">
           <Outlet />
         </main>
+        <BottomNav />
       </div>
       <SearchPalette />
       <GlobalShortcuts />

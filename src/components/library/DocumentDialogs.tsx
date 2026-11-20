@@ -7,7 +7,7 @@ import { DocumentCover } from "./DocumentCover";
 import { TagPicker } from "./TagPicker";
 import { collectionOptions } from "./CollectionDialog";
 import { useLibrary, refreshLibrary } from "@/stores/library";
-import { api, errorMessage } from "@/services/api";
+import { api, errorMessage, isMobile } from "@/services/api";
 import { changeCover, removeDocuments } from "@/features/documents/actions";
 import { cn, formatBytes, formatDate, FORMAT_LABEL, STATUSES, STATUS_LABEL, swatch } from "@/utils";
 import type { ReadingStatus } from "@/types";
@@ -171,13 +171,13 @@ function RemoveDocumentsDialog() {
           <p className="text-muted">
             {single ? "It" : "They"} will be removed from your library together with {annotations ? `${annotations} highlight${annotations === 1 ? "" : "s"}, ` : ""}bookmarks and reading progress. Notes are kept as standalone notes.
           </p>
-          <label className="flex items-start gap-3 rounded-lg border border-border bg-surface-2 p-3">
+          {!isMobile() && <label className="flex items-start gap-3 rounded-lg border border-border bg-surface-2 p-3">
             <Switch checked={deleteFiles} onChange={setDeleteFiles} label="Also move files to the Recycle Bin" />
             <span>
               <span className="font-medium">Also move the original file{docs.length > 1 ? "s" : ""} to the Recycle Bin</span>
               <span className="block text-[12px] text-muted">Off by default — your files stay where they are.</span>
             </span>
-          </label>
+          </label>}
           {deleteFiles && (
             <p className="flex items-center gap-2 text-[12.5px] text-warning">
               <TriangleExclamationPoint className="size-4" /> The file{docs.length > 1 ? "s" : ""} can be restored from the Recycle Bin.

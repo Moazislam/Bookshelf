@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Android 12+ always shows a launch screen with the app icon. BookShelf hides it:
+         no icon, and the same background as the app, so the app appears to open directly. -->
+    <style name="Theme.bookshelf" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/bookshelf_bg</item>
+        <item name="android:statusBarColor">@color/bookshelf_bg</item>
+        <item name="android:navigationBarColor">@color/bookshelf_bg</item>
+        <item name="android:windowSplashScreenBackground">@color/bookshelf_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+    </style>
+</resources>

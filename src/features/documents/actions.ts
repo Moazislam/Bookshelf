@@ -1,6 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/services/api";
+import { api, errorMessage, isMobile } from "@/services/api";
 import { refreshLibrary, useLibrary } from "@/stores/library";
 import { enqueuePdfProcessing } from "@/services/pdfProcessing";
 import type { Document, DocumentPatch, ReadingStatus } from "@/types";
@@ -55,10 +55,20 @@ export async function addTag(ids: string[], tagId: string) {
 }
 
 export async function removeDocuments(ids: string[], deleteFiles: boolean) {
-  const r = await guard(api.removeDocuments(ids, deleteFiles), "Could not remove documents");
+  // On phones BookShelf stores its own copy of each book; removing it frees that space.
+  // The file the user originally picked (e.g. in Downloads) is never touched.
+  const mobile = isMobile();
+  const r = await guard(api.removeDocuments(ids, mobile || deleteFiles), "Could not remove documents");
   if (!r) return;
   useLibrary.getState().dropDocuments(ids);
   await refreshLibrary();
+  if (mobile) {
+    if (r.failed.length) toast.error("Some stored copies could not be deleted", { description: r.failed.slice(0, 3).join("\n") });
+    toast.success(`Removed ${r.removed} document${r.removed === 1 ? "" : "s"} from your library`, {
+      description: "The original files on your device were not touched.",
+    });
+    return;
+  }
   if (r.failed.length) {
     toast.error("Some files could not be moved to the Recycle Bin", { description: r.failed.slice(0, 3).join("\n") });
   }

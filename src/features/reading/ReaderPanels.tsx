@@ -53,7 +53,16 @@ export function SidePanel({ side, open, children, storageKey }: { side: "left" |
   };
   if (!open) return null;
   return (
-    <aside className={cn("relative flex h-full shrink-0 flex-col bg-sidebar", side === "left" ? "border-r border-border" : "border-l border-border")} style={{ width }}>
+    <aside
+      className={cn(
+        "relative flex h-full shrink-0 flex-col bg-sidebar",
+        side === "left" ? "border-r border-border" : "border-l border-border",
+        // Phones: float over the page instead of squeezing it.
+        "max-md:absolute max-md:inset-y-0 max-md:z-30 max-md:w-[88vw]! max-md:shadow-lg",
+        side === "left" ? "max-md:left-0" : "max-md:right-0",
+      )}
+      style={{ width }}
+    >
       {children}
       <div
         onPointerDown={onPointerDown}

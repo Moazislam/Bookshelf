@@ -112,7 +112,7 @@ export const DocumentRow = memo(function DocumentRow({ doc, selected, selecting,
             navigate(`/read/${doc.id}`);
           }}
           className={cn(
-            "group grid h-14 cursor-default grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] items-center gap-3 border-b border-border/70 px-3 text-[13px]",
+            "group grid h-14 cursor-default grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] max-md:grid-cols-[28px_minmax(0,1fr)_32px] max-md:[&>*:nth-child(n+3):nth-child(-n+7)]:hidden items-center gap-3 border-b border-border/70 px-3 text-[13px]",
             selected ? "bg-accent-soft" : "hover:bg-surface/70",
           )}
         >

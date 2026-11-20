@@ -33,7 +33,7 @@ export function HistoryPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-8 py-7">
+    <div className="mx-auto max-w-3xl px-4 md:px-8 py-7">
       <h1 className="font-serif text-[28px] font-semibold">Reading History</h1>
       <p className="mt-1 text-[13px] text-muted">Every reading session, as it actually happened.</p>
       <div className="mt-8">
