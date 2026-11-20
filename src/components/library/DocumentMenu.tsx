@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { BookOpen, CircleDot, ExternalLink, FolderPlus, ImagePlus, Link, Pencil, Star, Tag, Trash } from "lucide-react";
+import { BookOpen, CircleDot, ExternalLink, FolderPlus, ImagePlus, Link, Pencil, ScanText, Star, Tag, Trash } from "lucide-react";
 import {
   ContextMenuCheckboxItem,
   ContextMenuItem,
@@ -18,6 +18,7 @@ import { useLibrary } from "@/stores/library";
 import { useDocDialogs } from "./DocumentDialogs";
 import { changeCover, relinkDocument, revealDocument, setStatus, toggleCollection, toggleFavorite } from "@/features/documents/actions";
 import { api, isMobile } from "@/services/api";
+import { enqueueOcr, needsOcr } from "@/services/ocr";
 import { refreshLibrary } from "@/stores/library";
 import { collectionOptions } from "./CollectionDialog";
 import { STATUSES, STATUS_LABEL, swatch } from "@/utils";
@@ -95,6 +96,11 @@ export function DocumentMenuItems({ doc, kind }: { doc: Document; kind: "context
       <C.Item onSelect={() => openEdit(doc.id)}>
         <Pencil /> Edit details…
       </C.Item>
+      {needsOcr(doc) && (
+        <C.Item onSelect={() => enqueueOcr(doc.id)}>
+          <ScanText /> Recognise text (OCR)
+        </C.Item>
+      )}
       <C.Item onSelect={() => changeCover(doc)}>
         <ImagePlus /> Change cover…
       </C.Item>

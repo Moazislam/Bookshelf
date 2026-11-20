@@ -25,6 +25,8 @@ pub struct Document {
     pub missing: bool,
     pub metadata_ready: bool,
     pub text_indexed: bool,
+    /// 'native', 'ocr' or 'none' once text is indexed; None before that.
+    pub text_source: Option<String>,
     pub tag_ids: Vec<String>,
     pub collection_ids: Vec<String>,
     pub highlight_count: i64,

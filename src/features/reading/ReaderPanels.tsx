@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookmarkPlus, ChevronDown, Pencil, Plus, Search, StickyNote, Trash, X } from "lucide-react";
+import { BookmarkPlus, ChevronDown, Pencil, Plus, ScanText, Search, StickyNote, Trash, X } from "lucide-react";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/services/api";
+import { enqueueOcr, isOcrQueued, needsOcr } from "@/services/ocr";
 import { useReader, HL_SWATCH, type TocItem } from "./store";
 import { PdfThumbnails } from "./engines/PdfEngine";
 import { ComicThumbnails } from "./engines/ComicEngine";
@@ -216,6 +217,9 @@ function SearchTab() {
   const dq = useDebouncedValue(q.trim(), 220);
   const [hits, setHits] = useState<ContentHit[] | null>(null);
   const [loading, setLoading] = useState(false);
+  // The library copy is refreshed when OCR finishes; the reader's copy is not.
+  const libDoc = useLibrary((s) => s.byId[doc.id]) ?? doc;
+  const [ocrQueued, setOcrQueued] = useState(() => isOcrQueued(doc.id));
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const on = () => inputRef.current?.focus();
@@ -235,7 +239,7 @@ function SearchTab() {
     return () => {
       alive = false;
     };
-  }, [dq, doc.id, set]);
+  }, [dq, doc.id, set, libDoc.textSource]);
 
   const sorted = useMemo(() => {
     if (!hits) return null;
@@ -256,7 +260,14 @@ function SearchTab() {
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {loading && <div className="flex justify-center py-4"><Spinner className="text-subtle" /></div>}
         {!doc.textIndexed && doc.format === "pdf" && <p className="px-3 py-2 text-[12px] text-warning">This PDF is still being indexed — results may be incomplete.</p>}
-        {doc.format === "cbz" && <p className="px-3 py-4 text-center text-[12.5px] text-subtle">Comics contain images only, so there is no text to search.</p>}
+        {needsOcr(libDoc) && (
+          <div className="px-3 py-4 text-center text-[12.5px] text-subtle">
+            <p>{doc.format === "cbz" ? "This comic contains images only" : "This looks like a scanned book"}, so there is no text to search yet.</p>
+            <Button size="sm" variant="secondary" className="mt-3" disabled={ocrQueued} onClick={() => { enqueueOcr(doc.id); setOcrQueued(true); }}>
+              <ScanText /> {ocrQueued ? "Recognising text…" : "Recognise text (OCR)"}
+            </Button>
+          </div>
+        )}
         {sorted && sorted.length === 0 && !loading && <p className="px-3 py-6 text-center text-[12.5px] text-subtle">No matches for “{dq}”.</p>}
         {sorted?.map((h, i) => (
           <button key={i} onClick={() => engine?.goTo(h.locator)} className="block w-full rounded-md px-2.5 py-2 text-left hover:bg-bg-subtle">
