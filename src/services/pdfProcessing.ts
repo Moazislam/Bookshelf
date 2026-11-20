@@ -4,6 +4,7 @@
  * UI between pages so imports never block reading or browsing.
  */
 import { api, errorMessage } from "@/services/api";
+import { offerOcr, needsOcr } from "@/services/ocr";
 import { openPdf, pageText, parsePdfDate } from "@/services/pdf";
 import { useLibrary } from "@/stores/library";
 import { useSettings } from "@/stores/settings";
@@ -106,6 +107,7 @@ async function processOne(doc: Document, onProgress: (p: number) => void) {
     if (pdf.numPages === 0) await api.indexDocumentText(doc.id, [], true, true);
     const fresh = await api.getDocument(doc.id);
     useLibrary.getState().upsertDocuments([fresh]);
+    if (needsOcr(fresh)) offerOcr(fresh);
   } finally {
     await pdf.loadingTask.destroy();
   }

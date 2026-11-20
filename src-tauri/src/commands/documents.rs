@@ -14,7 +14,8 @@ pub const DOC_SELECT: &str = "SELECT d.id, d.path, d.format, d.file_name, d.titl
     (SELECT group_concat(tag_id) FROM document_tags WHERE document_id = d.id),
     (SELECT group_concat(collection_id) FROM document_collections WHERE document_id = d.id),
     (SELECT count(*) FROM highlights WHERE document_id = d.id),
-    (SELECT count(*) FROM notes WHERE document_id = d.id)
+    (SELECT count(*) FROM notes WHERE document_id = d.id),
+    d.text_source
     FROM documents d";
 
 fn split_ids(s: Option<String>) -> Vec<String> {
@@ -49,6 +50,7 @@ pub fn row_to_document(r: &Row) -> rusqlite::Result<Document> {
         collection_ids: split_ids(r.get(23)?),
         highlight_count: r.get(24)?,
         note_count: r.get(25)?,
+        text_source: r.get(26)?,
     })
 }
 
@@ -195,6 +197,9 @@ pub fn import_one(conn: &mut Connection, covers_dir: &Path, raw: &Path, opts: &I
             stmt.execute(params![id, c.locator, c.label, c.text])?;
         }
     }
+    if !pdf_pending {
+        set_text_source(&tx, &id, None)?;
+    }
     tx.commit()?;
     Ok(ImportOutcome::Imported { id, pdf_pending })
 }
@@ -340,13 +345,32 @@ pub fn finalize_pdf_import(state: State<AppState>, id: String, meta: PdfMeta, co
     get_doc(&conn, &id)
 }
 
+/// Records where the indexed text came from. `ocr` marks recognised text;
+/// otherwise it is 'native' when any text was stored and 'none' when the
+/// document had no text at all (a scanned PDF or a comic, which OCR can fix).
+pub fn set_text_source(conn: &Connection, id: &str, ocr: Option<bool>) -> AppResult<()> {
+    conn.execute(
+        "UPDATE documents SET text_source = CASE
+            WHEN NOT EXISTS (SELECT 1 FROM doc_text t WHERE t.document_id = ?1) THEN 'none'
+            WHEN ?2 THEN 'ocr' ELSE 'native' END
+         WHERE id = ?1",
+        params![id, ocr.unwrap_or(false)],
+    )?;
+    Ok(())
+}
+
 /// Store extracted text for full-text search. Sent in batches by the frontend.
+/// `ocr` is true when the text was recognised from page images.
 #[tauri::command]
-pub fn index_document_text(state: State<AppState>, id: String, chunks: Vec<TextChunk>, reset: bool, done: bool) -> AppResult<()> {
+pub fn index_document_text(state: State<AppState>, id: String, chunks: Vec<TextChunk>, reset: bool, done: bool, ocr: Option<bool>) -> AppResult<()> {
     let mut conn = state.db.conn();
+    index_document_text_inner(&mut conn, &id, &chunks, reset, done, ocr)
+}
+
+pub fn index_document_text_inner(conn: &mut Connection, id: &str, chunks: &[TextChunk], reset: bool, done: bool, ocr: Option<bool>) -> AppResult<()> {
     let tx = conn.transaction()?;
     if reset {
-        tx.execute("DELETE FROM doc_text WHERE document_id = ?1", [&id])?;
+        tx.execute("DELETE FROM doc_text WHERE document_id = ?1", [id])?;
     }
     {
         let mut stmt = tx.prepare("INSERT INTO doc_text (document_id, locator, label, text) VALUES (?1, ?2, ?3, ?4)")?;
@@ -355,7 +379,8 @@ pub fn index_document_text(state: State<AppState>, id: String, chunks: Vec<TextC
         }
     }
     if done {
-        tx.execute("UPDATE documents SET text_indexed = 1 WHERE id = ?1", [&id])?;
+        tx.execute("UPDATE documents SET text_indexed = 1 WHERE id = ?1", [id])?;
+        set_text_source(&tx, id, ocr)?;
     }
     tx.commit()?;
     Ok(())

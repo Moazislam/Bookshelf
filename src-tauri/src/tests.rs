@@ -2,7 +2,8 @@
 //! guarantees around never deleting documents implicitly.
 
 use crate::commands::collections::{creates_cycle, delete_collection_inner};
-use crate::commands::documents::{ImportOptions, ImportOutcome, get_doc, import_one};
+use crate::commands::documents::{ImportOptions, ImportOutcome, get_doc, import_one, index_document_text_inner};
+use crate::models::TextChunk;
 use crate::commands::search::search_inner;
 use crate::database::Db;
 use crate::error::now_ms;
@@ -194,4 +195,36 @@ fn stats_activity_has_one_row_per_day() {
     assert_eq!(days.last().unwrap().seconds, 120);
     let t = crate::commands::stats::totals(&conn);
     assert_eq!((t.pages_read, t.reading_seconds), (4, 120));
+}
+
+#[test]
+fn scanned_pdf_is_flagged_and_becomes_searchable_after_ocr() {
+    let dir = tempfile::tempdir().unwrap();
+    let covers = dir.path().join("covers");
+    let pdf = write_file(dir.path(), "scan.pdf", "%PDF-1.4 scanned pages only");
+    let db = Db::open_in_memory().unwrap();
+    let mut conn = db.conn();
+    let ImportOutcome::Imported { id, pdf_pending } = import_one(&mut conn, &covers, &pdf, &no_copy()).unwrap() else { panic!() };
+    assert!(pdf_pending);
+    assert_eq!(get_doc(&conn, &id).unwrap().text_source, None);
+
+    // pdf.js found no text on any page.
+    index_document_text_inner(&mut conn, &id, &[], true, true, None).unwrap();
+    let doc = get_doc(&conn, &id).unwrap();
+    assert!(doc.text_indexed);
+    assert_eq!(doc.text_source.as_deref(), Some("none"));
+
+    // OCR results replace the empty index.
+    let page = |n: &str, text: &str| TextChunk { locator: n.into(), label: Some(format!("Page {n}")), text: text.into() };
+    index_document_text_inner(&mut conn, &id, &[page("1", "The quick brown fox")], true, false, Some(true)).unwrap();
+    index_document_text_inner(&mut conn, &id, &[page("2", "jumps over the lazy dog")], false, true, Some(true)).unwrap();
+    assert_eq!(get_doc(&conn, &id).unwrap().text_source.as_deref(), Some("ocr"));
+    let results = search_inner(&conn, "lazy", 10).unwrap();
+    assert_eq!(results.content.len(), 1);
+    assert_eq!(results.content[0].locator, "2");
+
+    // Text files get their source at import time.
+    let txt = write_file(dir.path(), "a.txt", "plain words");
+    let ImportOutcome::Imported { id: tid, .. } = import_one(&mut conn, &covers, &txt, &no_copy()).unwrap() else { panic!() };
+    assert_eq!(get_doc(&conn, &tid).unwrap().text_source.as_deref(), Some("native"));
 }

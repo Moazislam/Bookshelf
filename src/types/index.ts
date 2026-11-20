@@ -25,6 +25,8 @@ export interface Document {
   missing: boolean;
   metadataReady: boolean;
   textIndexed: boolean;
+  /** Where the searchable text came from; "none" means a scanned book with no text layer. */
+  textSource: "native" | "ocr" | "none" | null;
   tagIds: string[];
   collectionIds: string[];
   highlightCount: number;

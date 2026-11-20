@@ -47,8 +47,8 @@ export const api = {
     meta: { title?: string; author?: string; description?: string; published?: string; pageCount: number },
     coverJpeg: number[] | null,
   ) => call<Document>("finalize_pdf_import", { id, meta, coverJpeg }),
-  indexDocumentText: (id: string, chunks: TextChunk[], reset: boolean, done: boolean) =>
-    call<void>("index_document_text", { id, chunks, reset, done }),
+  indexDocumentText: (id: string, chunks: TextChunk[], reset: boolean, done: boolean, ocr = false) =>
+    call<void>("index_document_text", { id, chunks, reset, done, ocr }),
   updateDocuments: (ids: string[], patch: DocumentPatch) => call<Document[]>("update_documents", { ids, patch }),
   removeDocuments: (ids: string[], deleteFiles: boolean) =>
     call<{ removed: number; trashed: number; failed: string[] }>("remove_documents", { ids, deleteFiles }),

@@ -2,7 +2,10 @@ use crate::error::AppResult;
 use rusqlite::Connection;
 
 /// Ordered list of migrations. Never edit a shipped migration; append a new one.
-const MIGRATIONS: &[&str] = &[include_str!("../../migrations/001_init.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("../../migrations/001_init.sql"),
+    include_str!("../../migrations/002_text_source.sql"),
+];
 
 pub fn run(conn: &mut Connection) -> AppResult<()> {
     let current: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
