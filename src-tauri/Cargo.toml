@@ -1,6 +1,6 @@
 [package]
 name = "bookshelf"
-version = "0.2.0"
+version = "0.3.0"
 description = "BookShelf — a local-first personal digital library"
 authors = ["BookShelf"]
 edition = "2024"
