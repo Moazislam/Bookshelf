@@ -52,7 +52,7 @@ export function CollectionsPage() {
   const [open, setOpen] = useState(false);
   const top = collections.filter((c) => !c.parentId);
   return (
-    <div className="px-8 py-7">
+    <div className="px-4 md:px-8 py-7">
       <div className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="font-serif text-[28px] font-semibold">Collections</h1>
@@ -116,7 +116,7 @@ export function CollectionDetailPage() {
 
   return (
     <>
-      <div className="px-8 pb-2 pt-7">
+      <div className="px-4 md:px-8 pb-2 pt-7">
         <div className="flex items-start gap-4">
           <div className="grid size-12 shrink-0 place-items-center rounded-xl" style={{ background: `color-mix(in srgb, ${swatch(c.color)} 18%, var(--surface))` }}>
             <Folder className="size-5" style={{ color: swatch(c.color) }} />

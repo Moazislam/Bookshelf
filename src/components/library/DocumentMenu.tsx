@@ -17,7 +17,7 @@ import {
 import { useLibrary } from "@/stores/library";
 import { useDocDialogs } from "./DocumentDialogs";
 import { changeCover, relinkDocument, revealDocument, setStatus, toggleCollection, toggleFavorite } from "@/features/documents/actions";
-import { api } from "@/services/api";
+import { api, isMobile } from "@/services/api";
 import { refreshLibrary } from "@/stores/library";
 import { collectionOptions } from "./CollectionDialog";
 import { STATUSES, STATUS_LABEL, swatch } from "@/utils";
@@ -102,7 +102,7 @@ export function DocumentMenuItems({ doc, kind }: { doc: Document; kind: "context
         <C.Item onSelect={() => relinkDocument(doc)}>
           <Link /> Locate file…
         </C.Item>
-      ) : (
+      ) : isMobile() ? null : (
         <C.Item onSelect={() => revealDocument(doc)}>
           <ExternalLink /> Show in folder
         </C.Item>

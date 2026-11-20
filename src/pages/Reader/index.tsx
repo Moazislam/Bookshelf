@@ -20,7 +20,7 @@ import {
   Moon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { api, errorMessage, isTauri } from "@/services/api";
+import { api, errorMessage, isMobile, isTauri } from "@/services/api";
 import { useLibrary } from "@/stores/library";
 import { useSettings } from "@/stores/settings";
 import { useReader } from "@/features/reading/store";
@@ -284,6 +284,7 @@ export function ReaderPage() {
     const next = !fullscreen;
     setFullscreen(next);
     setChromeHidden(next);
+    if (isMobile()) return; // the app is already full-screen; hiding the reader chrome is enough
     if (isTauri()) await getCurrentWindow().setFullscreen(next).catch(() => {});
     else if (next) document.documentElement.requestFullscreen?.().catch(() => {});
     else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -370,7 +371,7 @@ export function ReaderPage() {
 
   return (
     <div className="flex h-full flex-col bg-bg" onMouseMove={(e) => fullscreen && setChromeHidden(e.clientY > 70)}>
-      <header className={cn("z-20 flex h-12 shrink-0 items-center gap-1 border-b border-border bg-bg px-2 transition-all", fullscreen && "absolute inset-x-0 top-0 shadow-md", fullscreen && chromeHidden && "pointer-events-none -translate-y-full opacity-0")}>
+      <header className={cn("z-20 flex min-h-12 shrink-0 items-center gap-1 border-b border-border bg-bg px-2 pt-safe-t transition-all", fullscreen && "absolute inset-x-0 top-0 shadow-md", fullscreen && chromeHidden && "pointer-events-none -translate-y-full opacity-0")}>
         <IconButton label="Back" onClick={back}><ArrowLeft /></IconButton>
         <IconButton label="Contents & bookmarks" shortcut="Ctrl+[" active={leftOpen} onClick={() => setLeftOpen(!leftOpen)}><PanelLeft /></IconButton>
         <div className="mx-2 min-w-0 flex-1">
@@ -378,10 +379,13 @@ export function ReaderPage() {
           <div className="truncate text-[11.5px] text-muted">{[doc.author, location?.label].filter(Boolean).join(" · ")}</div>
         </div>
         {doc.format === "pdf" && <PdfZoomControls />}
-        <div className="mx-1 h-5 w-px bg-border" />
-        <IconButton label="Previous" onClick={() => engine?.prev()}><ChevronLeft /></IconButton>
-        <IconButton label="Next" onClick={() => engine?.next()}><ChevronRight /></IconButton>
-        <IconButton label="Find in document" shortcut="Ctrl+F" onClick={() => { setLeftOpen(true); setLeftTab("search"); }}><Search /></IconButton>
+        {/* On phones, page turns are tap zones and find lives in the Contents panel. */}
+        <span className="hidden md:contents">
+          <div className="mx-1 h-5 w-px bg-border" />
+          <IconButton label="Previous" onClick={() => engine?.prev()}><ChevronLeft /></IconButton>
+          <IconButton label="Next" onClick={() => engine?.next()}><ChevronRight /></IconButton>
+          <IconButton label="Find in document" shortcut="Ctrl+F" onClick={() => { setLeftOpen(true); setLeftTab("search"); }}><Search /></IconButton>
+        </span>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Display settings"><Type /></Button>
@@ -393,9 +397,11 @@ export function ReaderPage() {
         <IconButton label={currentBookmark ? "Remove bookmark" : "Bookmark this page"} shortcut="Ctrl+D" onClick={toggleBookmark} active={!!currentBookmark}>
           {currentBookmark ? <BookmarkCheck className="text-accent" /> : <Bookmark />}
         </IconButton>
-        <EyeComfortToggle />
-        <ThemeToggle />
-        <IconButton label={fullscreen ? "Exit full screen" : "Full screen"} shortcut="F11" onClick={toggleFullscreen}>{fullscreen ? <Minimize /> : <Maximize />}</IconButton>
+        <span className="hidden md:contents">
+          <EyeComfortToggle />
+          <ThemeToggle />
+          <IconButton label={fullscreen ? "Exit full screen" : "Full screen"} shortcut="F11" onClick={toggleFullscreen}>{fullscreen ? <Minimize /> : <Maximize />}</IconButton>
+        </span>
         <IconButton label="Highlights, notes & info" shortcut="Ctrl+]" active={rightOpen} onClick={() => setRightOpen(!rightOpen)}><PanelRight /></IconButton>
       </header>
 
@@ -405,13 +411,20 @@ export function ReaderPage() {
         </SidePanel>
         <main className="relative min-w-0 flex-1">
           <Engine key={doc.id} doc={doc} initial={initial ?? null} />
+          {(doc.format === "epub" || doc.format === "cbz") && (
+            // Phones: tap the outer edges to turn pages. Narrow strips, so text in the middle stays selectable.
+            <>
+              <button aria-label="Previous page" className="absolute inset-y-0 left-0 z-10 w-[14%] md:hidden" onClick={() => engine?.prev()} />
+              <button aria-label="Next page" className="absolute inset-y-0 right-0 z-10 w-[14%] md:hidden" onClick={() => engine?.next()} />
+            </>
+          )}
         </main>
         <SidePanel side="right" open={rightOpen && !fullscreen} storageKey="bookshelf.reader.rightWidth">
           <RightPanel tab={rightTab} setTab={setRightTab} openNoteId={openNoteId} setOpenNoteId={setOpenNoteId} />
         </SidePanel>
       </div>
 
-      <footer className={cn("flex h-7 shrink-0 items-center gap-3 border-t border-border bg-bg px-4 text-[11px] tabular-nums text-subtle", fullscreen && "hidden")}>
+      <footer className={cn("flex min-h-7 shrink-0 items-center gap-3 border-t border-border bg-bg px-4 pb-safe-b text-[11px] tabular-nums text-subtle", fullscreen && "hidden")}>
         <span>{location?.page && location.total && doc.format !== "epub" ? `${location.page} / ${location.total}` : location?.label}</span>
         <div className="h-1 flex-1 overflow-hidden rounded-full bg-border/70">
           <div className="h-full bg-accent transition-[width]" style={{ width: `${progress * 100}%` }} />

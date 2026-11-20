@@ -202,7 +202,7 @@ function HighlightsWorkspace() {
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border/60 bg-bg/90 px-8 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border/60 bg-bg/90 px-4 md:px-8 py-3 backdrop-blur">
         <div className="relative w-64">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-subtle" />
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search highlights…" className="h-8 pl-8" />
@@ -221,7 +221,7 @@ function HighlightsWorkspace() {
           <Download /> Export Markdown
         </Button>
       </div>
-      <div className="mx-auto max-w-4xl px-8 py-6">
+      <div className="mx-auto max-w-4xl px-4 md:px-8 py-6">
         {loading && !data ? (
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="mb-3 h-20" />)
         ) : grouped.length === 0 ? (
@@ -260,7 +260,7 @@ export function NotesPage() {
   useBreadcrumbs([{ label: "Notes & Highlights" }]);
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-end justify-between px-8 pb-4 pt-7">
+      <div className="flex items-end justify-between px-4 md:px-8 pb-4 pt-7">
         <div>
           <h1 className="font-serif text-[28px] font-semibold">Notes & Highlights</h1>
           <p className="mt-1 text-[13px] text-muted">Your thinking, connected to what you read.</p>

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import { pickAndImportFiles, pickAndImportFolder } from "@/features/documents/importer";
 import { cn, relativeTime } from "@/utils";
+import { isMobile } from "@/services/api";
 import { EyeComfortToggle } from "./EyeComfort";
 
 function TaskIndicator() {
@@ -96,14 +97,18 @@ export function ThemeToggle() {
 
 export function TopBar() {
   const toggleSidebar = useUI((s) => s.toggleSidebar);
+  const setNavOpen = useUI((s) => s.setMobileNavOpen);
   const setSearchOpen = useUI((s) => s.setSearchOpen);
   const crumbs = useUI((s) => s.breadcrumbs);
+  // Below the md breakpoint the sidebar is a drawer rather than a column.
+  const onToggle = () => (window.matchMedia("(max-width: 767px)").matches ? setNavOpen(true) : toggleSidebar());
   return (
-    <header className="flex h-13 shrink-0 items-center gap-2 border-b border-border bg-bg/80 px-3 backdrop-blur">
-      <IconButton label="Toggle sidebar" shortcut="Ctrl+B" onClick={toggleSidebar}>
+    <header className="shrink-0 border-b border-border bg-bg/80 pt-safe-t backdrop-blur">
+     <div className="flex h-13 items-center gap-2 px-3">
+      <IconButton label="Toggle sidebar" shortcut="Ctrl+B" onClick={onToggle}>
         <PanelLeft />
       </IconButton>
-      <nav className="flex min-w-0 items-center gap-1 text-[13px]" aria-label="Breadcrumb">
+      <nav className="hidden min-w-0 items-center gap-1 text-[13px] sm:flex" aria-label="Breadcrumb">
         {crumbs.map((c, i) => (
           <span key={i} className="flex min-w-0 items-center gap-1">
             {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-subtle" />}
@@ -120,11 +125,11 @@ export function TopBar() {
 
       <button
         onClick={() => setSearchOpen(true)}
-        className="mx-auto flex h-8.5 w-full max-w-[420px] items-center gap-2 rounded-md border border-border bg-surface px-3 text-[13px] text-subtle shadow-sm transition-colors hover:border-border-strong"
+        className="mx-auto flex h-8.5 w-full min-w-0 max-w-[420px] flex-1 items-center sm:flex-none gap-2 rounded-md border border-border bg-surface px-3 text-[13px] text-subtle shadow-sm transition-colors hover:border-border-strong"
       >
         <Search className="size-4" />
-        <span>Search documents, notes, highlights…</span>
-        <span className="ml-auto flex gap-0.5">
+        <span className="truncate">Search documents, notes, highlights…</span>
+        <span className="ml-auto hidden gap-0.5 md:flex">
           <Kbd>Ctrl</Kbd>
           <Kbd>K</Kbd>
         </span>
@@ -141,9 +146,11 @@ export function TopBar() {
             <DropdownMenuItem onSelect={() => pickAndImportFiles()}>
               <Upload /> Import files…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => pickAndImportFolder()}>
-              <FolderPlus /> Import a folder…
-            </DropdownMenuItem>
+            {!isMobile() && (
+              <DropdownMenuItem onSelect={() => pickAndImportFolder()}>
+                <FolderPlus /> Import a folder…
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild>
               <Link to="/notes?new=1">
                 <Plus /> New note
@@ -152,9 +159,12 @@ export function TopBar() {
           </DropdownMenuContent>
         </DropdownMenu>
         <TaskIndicator />
-        <EyeComfortToggle />
-        <ThemeToggle />
+        <span className="hidden sm:contents">
+          <EyeComfortToggle />
+          <ThemeToggle />
+        </span>
       </div>
+     </div>
     </header>
   );
 }

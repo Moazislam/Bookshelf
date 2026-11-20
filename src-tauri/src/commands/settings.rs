@@ -1,5 +1,6 @@
 use crate::database::migrations;
 use crate::error::{AppError, AppResult, now_ms};
+use crate::filesystem::external;
 use crate::filesystem::paths::validate_export_path;
 use crate::state::AppState;
 use rusqlite::params;
@@ -7,7 +8,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::Path;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 #[tauri::command]
 pub fn get_settings(state: State<AppState>) -> AppResult<HashMap<String, serde_json::Value>> {
@@ -70,7 +71,13 @@ pub fn library_info(state: State<AppState>) -> AppResult<LibraryInfo> {
 
 /// Write an export (notes / highlights) to a path the user picked in a save dialog.
 #[tauri::command]
-pub fn write_export(path: String, contents: String) -> AppResult<()> {
+pub fn write_export(app: AppHandle, state: State<AppState>, path: String, contents: String) -> AppResult<()> {
+    if external::is_uri(&path) {
+        // Android save dialogs return a content:// URI the user already chose a name for.
+        let local = external::output_target(&path, &state.temp_dir(), "txt")?;
+        std::fs::write(&local, contents)?;
+        return external::finish_output(&app, &path, &local);
+    }
     let p = validate_export_path(&path, &["md", "markdown", "txt", "json", "csv"])?;
     let tmp = p.with_extension("partial");
     std::fs::write(&tmp, contents)?;
@@ -80,8 +87,12 @@ pub fn write_export(path: String, contents: String) -> AppResult<()> {
 
 /// Backup = consistent DB snapshot (VACUUM INTO) + cover thumbnails, zipped.
 #[tauri::command]
-pub fn create_backup(state: State<AppState>, path: String) -> AppResult<u64> {
-    let dest = validate_export_path(&path, &["zip"])?;
+pub fn create_backup(app: AppHandle, state: State<AppState>, path: String) -> AppResult<u64> {
+    let dest = if external::is_uri(&path) {
+        external::output_target(&path, &state.temp_dir(), "zip")?
+    } else {
+        validate_export_path(&path, &["zip"])?
+    };
     let snapshot = state.data_dir.join(format!("backup-{}.db", now_ms()));
     {
         let conn = state.db.conn();
@@ -111,16 +122,33 @@ pub fn create_backup(state: State<AppState>, path: String) -> AppResult<u64> {
         Ok(())
     })();
     let _ = std::fs::remove_file(&snapshot);
-    result?;
-    Ok(std::fs::metadata(&dest)?.len())
+    if let Err(e) = result {
+        if external::is_uri(&path) {
+            let _ = std::fs::remove_file(&dest);
+        }
+        return Err(e);
+    }
+    let size = std::fs::metadata(&dest)?.len();
+    external::finish_output(&app, &path, &dest)?;
+    Ok(size)
 }
 
 /// Restore a backup in place. The current database is first saved next to it
 /// as `library.before-restore.db`, so a restore can always be undone manually.
 #[tauri::command]
-pub fn restore_backup(state: State<AppState>, path: String) -> AppResult<()> {
+pub fn restore_backup(app: AppHandle, state: State<AppState>, path: String) -> AppResult<()> {
+    if external::is_uri(&path) {
+        let local = external::stage_input(&app, &path, &state.temp_dir(), false)?;
+        let result = restore_from(&state, &local);
+        let _ = std::fs::remove_file(&local);
+        return result;
+    }
     let src = validate_export_path(&path, &["zip"])?;
-    let mut zip = zip::ZipArchive::new(std::io::BufReader::new(std::fs::File::open(&src)?))?;
+    restore_from(&state, &src)
+}
+
+fn restore_from(state: &AppState, src: &Path) -> AppResult<()> {
+    let mut zip = zip::ZipArchive::new(std::io::BufReader::new(std::fs::File::open(src)?))?;
     let staged = state.data_dir.join("restore-staging.db");
     {
         let mut entry = zip
@@ -179,6 +207,7 @@ pub struct MaintenanceReport {
     pub size_before: u64,
     pub size_after: u64,
     pub orphan_covers_removed: usize,
+    pub orphan_files_removed: usize,
 }
 
 #[tauri::command]
@@ -203,5 +232,27 @@ pub fn run_maintenance(state: State<AppState>) -> AppResult<MaintenanceReport> {
             removed += 1;
         }
     }
-    Ok(MaintenanceReport { integrity, size_before: before, size_after: size(), orphan_covers_removed: removed })
+    let orphan_files_removed = remove_orphan_library_files(&state)?;
+    Ok(MaintenanceReport { integrity, size_before: before, size_after: size(), orphan_covers_removed: removed, orphan_files_removed })
+}
+
+/// Delete stored copies in the app's own library folder (used on mobile) that no
+/// document points to any more, e.g. leftovers from an interrupted import.
+/// Only that folder is touched; files elsewhere are never deleted.
+pub(crate) fn remove_orphan_library_files(state: &AppState) -> AppResult<usize> {
+    let dir = state.library_dir();
+    let Ok(canonical_dir) = std::fs::canonicalize(&dir) else { return Ok(0) };
+    let known: std::collections::HashSet<std::path::PathBuf> = {
+        let conn = state.db.conn();
+        let paths: Vec<String> = conn.prepare("SELECT path FROM documents")?.query_map([], |r| r.get(0))?.collect::<Result<_, _>>()?;
+        paths.into_iter().filter_map(|p| std::fs::canonicalize(p).ok()).collect()
+    };
+    let mut removed = 0;
+    for entry in std::fs::read_dir(&canonical_dir)?.flatten() {
+        let p = entry.path();
+        if p.is_file() && !known.contains(&p) && std::fs::remove_file(&p).is_ok() {
+            removed += 1;
+        }
+    }
+    Ok(removed)
 }

@@ -1,6 +1,6 @@
 use crate::document_processing::{self as dp, Format, cover, hash};
 use crate::error::{AppError, AppResult, new_id, now_ms};
-use crate::filesystem::paths;
+use crate::filesystem::{external, paths};
 use crate::models::{Document, DocumentPatch, TextChunk};
 use crate::state::AppState;
 use rusqlite::{Connection, OptionalExtension, Row, params};
@@ -212,14 +212,26 @@ pub fn import_paths(
     paths: Vec<String>,
     collection_id: Option<String>,
 ) -> AppResult<ImportJob> {
-    let files = paths::expand_import_paths(&paths);
+    // Picked files can be plain paths (desktop) or content:// URIs (Android).
+    enum Source {
+        Path(PathBuf),
+        Uri(String),
+    }
+    let (uris, plain): (Vec<String>, Vec<String>) = paths.into_iter().partition(|p| external::is_uri(p));
+    let mut files: Vec<Source> = paths::expand_import_paths(&plain).into_iter().map(Source::Path).collect();
+    files.extend(uris.into_iter().map(Source::Uri));
+
     let job_id = new_id();
     let total = files.len();
     let db = state.db.clone();
     let covers_dir = state.covers_dir.clone();
+    let library_dir = state.library_dir();
     let job = job_id.clone();
 
-    let opts = {
+    let opts = if cfg!(mobile) {
+        // Mobile apps can only rely on files inside their own storage.
+        ImportOptions { copy_to: Some(library_dir.clone()) }
+    } else {
         let conn = db.conn();
         let copy = read_setting(&conn, "library.copyOnImport").and_then(|v| v.as_bool()).unwrap_or(false);
         let folder = read_setting(&conn, "library.folder").and_then(|v| v.as_str().map(PathBuf::from));
@@ -228,19 +240,40 @@ pub fn import_paths(
 
     std::thread::spawn(move || {
         let mut report = ImportReport { job_id: job.clone(), ..Default::default() };
-        for (index, file) in files.iter().enumerate() {
-            let file_name = paths::file_name(file);
+        for (index, source) in files.iter().enumerate() {
+            let (file_name, shown_path) = match source {
+                Source::Path(p) => (paths::file_name(p), p.to_string_lossy().into_owned()),
+                Source::Uri(u) => (external::picked_file_name(&app, u), u.clone()),
+            };
             let _ = app.emit("import-progress", ImportProgress { job_id: job.clone(), index, total, file_name: file_name.clone() });
             let issue = |message: String, existing_id: Option<String>| ImportIssue {
                 file_name: file_name.clone(),
-                path: file.to_string_lossy().into_owned(),
+                path: shown_path.clone(),
                 message,
                 existing_id,
             };
+            // URIs are copied straight into the library folder; that copy is the stored file.
+            let staged = match source {
+                Source::Path(p) => Ok((p.clone(), false)),
+                Source::Uri(u) => external::stage_input(&app, u, &library_dir, true).map(|p| (p, true)),
+            };
+            let (file, is_staged) = match staged {
+                Ok(v) => v,
+                Err(e) => {
+                    report.errors.push(issue(e.to_string(), None));
+                    continue;
+                }
+            };
+            // A staged copy already lives in the library folder: never copy it a second time.
+            // (Comparing paths for this is unreliable on Android, where the app folder has two names.)
+            let no_copy = ImportOptions { copy_to: None };
             let result = {
                 let mut conn = db.conn();
-                import_one(&mut conn, &covers_dir, file, &opts)
+                import_one(&mut conn, &covers_dir, &file, if is_staged { &no_copy } else { &opts })
             };
+            if is_staged && matches!(result, Ok(ImportOutcome::Duplicate(_)) | Err(_)) {
+                let _ = std::fs::remove_file(&file); // nothing points at this copy
+            }
             match result {
                 Ok(ImportOutcome::Imported { id, pdf_pending }) => {
                     if pdf_pending {
@@ -413,13 +446,33 @@ pub fn remove_documents(state: State<AppState>, ids: Vec<String>, delete_files: 
             let _ = std::fs::remove_file(state.covers_dir.join(c));
         }
         if delete_files && Path::new(&path).exists() {
-            match trash::delete(&path) {
+            match delete_file(&state, &path) {
                 Ok(_) => report.trashed += 1,
                 Err(e) => report.failed.push(format!("{path}: {e}")),
             }
         }
     }
     Ok(report)
+}
+
+/// Desktop: move to the recycle bin. Mobile has no recycle bin, and the app only
+/// owns the copies inside its own storage, so those are deleted outright.
+#[cfg(desktop)]
+fn delete_file(_state: &AppState, path: &str) -> Result<(), String> {
+    trash::delete(path).map_err(|e| e.to_string())
+}
+
+#[cfg(mobile)]
+fn delete_file(state: &AppState, path: &str) -> Result<(), String> {
+    // Canonicalise both sides: Android reaches the app folder as /data/user/0/… and /data/data/….
+    let inside = match (std::fs::canonicalize(path), std::fs::canonicalize(&state.data_dir)) {
+        (Ok(p), Ok(d)) => p.starts_with(d),
+        _ => false,
+    };
+    if !inside {
+        return Err("Only files stored by BookShelf can be deleted".into());
+    }
+    std::fs::remove_file(path).map_err(|e| e.to_string())
 }
 
 fn set_cover_bytes(state: &AppState, id: &str, bytes: &[u8]) -> AppResult<Document> {
@@ -431,7 +484,14 @@ fn set_cover_bytes(state: &AppState, id: &str, bytes: &[u8]) -> AppResult<Docume
 }
 
 #[tauri::command]
-pub fn set_cover_from_file(state: State<AppState>, id: String, path: String) -> AppResult<Document> {
+pub fn set_cover_from_file(app: AppHandle, state: State<AppState>, id: String, path: String) -> AppResult<Document> {
+    if external::is_uri(&path) {
+        // Android: copy the picked image in; the decoder rejects anything that isn't one.
+        let local = external::stage_input(&app, &path, &state.temp_dir(), false)?;
+        let bytes = std::fs::read(&local);
+        let _ = std::fs::remove_file(&local);
+        return set_cover_bytes(&state, &id, &bytes?);
+    }
     let p = PathBuf::from(&path);
     if !cover::is_image_name(&path) || !p.is_file() {
         return Err(AppError::Invalid("Please choose a JPG, PNG, WebP, GIF or BMP image".into()));
@@ -453,7 +513,16 @@ pub struct RelinkResult {
 }
 
 #[tauri::command]
-pub fn relink_document(state: State<AppState>, id: String, path: String, force: bool) -> AppResult<RelinkResult> {
+pub fn relink_document(app: AppHandle, state: State<AppState>, id: String, path: String, force: bool) -> AppResult<RelinkResult> {
+    if external::is_uri(&path) {
+        // Android: bring the file into app storage, then relink to that copy.
+        let local = external::stage_input(&app, &path, &state.library_dir(), true)?;
+        let result = relink_document(app, state, id, local.to_string_lossy().into_owned(), force);
+        if !matches!(result, Ok(RelinkResult { document: Some(_), .. })) {
+            let _ = std::fs::remove_file(&local);
+        }
+        return result;
+    }
     let (p, format) = paths::validate_document_path(&path)?;
     let digest = hash::file_hash(&p)?;
     let conn = state.db.conn();
@@ -512,8 +581,16 @@ pub fn reveal_document(app: AppHandle, state: State<AppState>, id: String) -> Ap
     if !Path::new(&path).exists() {
         return Err(AppError::NotFound("The file no longer exists at its saved location".into()));
     }
-    use tauri_plugin_opener::OpenerExt;
-    app.opener().reveal_item_in_dir(&path).map_err(|e| AppError::Other(e.to_string()))
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_opener::OpenerExt;
+        app.opener().reveal_item_in_dir(&path).map_err(|e| AppError::Other(e.to_string()))
+    }
+    #[cfg(mobile)]
+    {
+        let _ = app;
+        Err(AppError::Invalid("Showing files in a folder isn't available on this device".into()))
+    }
 }
 
 #[tauri::command]

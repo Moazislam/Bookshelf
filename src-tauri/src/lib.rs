@@ -1,3 +1,5 @@
+#[cfg(target_os = "android")]
+mod android;
 mod commands;
 mod database;
 mod document_processing;
@@ -17,13 +19,21 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_fs::init());
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(android::init());
+
+    builder
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
+            // Leftovers from an interrupted import or export.
+            let _ = std::fs::remove_dir_all(data_dir.join("tmp"));
             let covers_dir = data_dir.join("covers");
             std::fs::create_dir_all(&covers_dir)?;
             // Clean up temporary files left behind by an interrupted run.

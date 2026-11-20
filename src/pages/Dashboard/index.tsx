@@ -7,7 +7,7 @@ import { DocumentCover } from "@/components/library/DocumentCover";
 import { useAsync, useBreadcrumbs } from "@/hooks";
 import { useLibrary } from "@/stores/library";
 import { useSettings } from "@/stores/settings";
-import { api } from "@/services/api";
+import { api, isMobile } from "@/services/api";
 import { pickAndImportFiles } from "@/features/documents/importer";
 import { formatDuration, greeting, relativeTime, swatch, FORMAT_LABEL } from "@/utils";
 import type { Document } from "@/types";
@@ -79,7 +79,7 @@ export function DashboardPage() {
 
   if (loaded && documents.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-8 py-16">
+      <div className="mx-auto max-w-3xl px-4 md:px-8 py-16">
         <h1 className="font-serif text-[34px] font-semibold">{greeting()}{name ? `, ${name}` : ""}.</h1>
         <p className="mt-2 text-[15px] text-muted">Welcome to BookShelf — a quiet place for everything you read.</p>
         <div className="mt-10 rounded-2xl border border-dashed border-border-strong bg-surface p-10 text-center">
@@ -88,7 +88,9 @@ export function DashboardPage() {
           </div>
           <h2 className="mt-5 font-serif text-xl font-semibold">Start your library</h2>
           <p className="mx-auto mt-2 max-w-md text-[13.5px] text-muted">
-            Drop PDFs, EPUBs, comics (CBZ), text or Markdown files anywhere in this window — or import a whole folder. Your files stay exactly where they are.
+            {isMobile()
+              ? "Import PDFs, EPUBs, comics (CBZ), text or Markdown files from your phone. BookShelf keeps its own copy, so your originals are never changed."
+              : "Drop PDFs, EPUBs, comics (CBZ), text or Markdown files anywhere in this window — or import a whole folder. Your files stay exactly where they are."}
           </p>
           <Button variant="primary" size="lg" className="mt-6" onClick={() => pickAndImportFiles()}>
             <Upload /> Import documents
@@ -100,7 +102,7 @@ export function DashboardPage() {
 
   const t = stats.data?.totals;
   return (
-    <div className="mx-auto flex max-w-[1240px] flex-col gap-9 px-8 py-8">
+    <div className="mx-auto flex max-w-[1240px] flex-col gap-9 px-4 md:px-8 py-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-[32px] font-semibold leading-tight">{greeting()}{name ? `, ${name}` : ""}.</h1>
@@ -164,7 +166,7 @@ export function DashboardPage() {
               <StatTile icon={StickyNote} label="Notes" value={t.notes} />
             </div>
           ) : (
-            <div className="grid grid-cols-6 gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[86px] rounded-xl" />)}</div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[86px] rounded-xl" />)}</div>
           )}
         </Section>
       )}

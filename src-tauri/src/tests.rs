@@ -103,6 +103,29 @@ fn copy_on_import_copies_into_library_folder() {
     assert!(src.exists(), "original must be left untouched");
 }
 
+#[test]
+fn maintenance_removes_only_unreferenced_stored_copies() {
+    let dir = tempfile::tempdir().unwrap();
+    let state = crate::state::AppState {
+        db: std::sync::Arc::new(Db::open_in_memory().unwrap()),
+        data_dir: dir.path().to_path_buf(),
+        covers_dir: dir.path().join("covers"),
+    };
+    let lib = state.library_dir();
+    std::fs::create_dir_all(&lib).unwrap();
+    let used = write_file(&lib, "book (1).txt", "kept, a document points here");
+    let orphan = write_file(&lib, "book.txt", "leftover copy");
+    let outside = write_file(dir.path(), "elsewhere.txt", "never touched");
+    {
+        let mut conn = state.db.conn();
+        import_one(&mut conn, &state.covers_dir, &used, &no_copy()).unwrap();
+    }
+    assert_eq!(crate::commands::settings::remove_orphan_library_files(&state).unwrap(), 1);
+    assert!(used.exists());
+    assert!(!orphan.exists());
+    assert!(outside.exists());
+}
+
 fn seed_doc(conn: &rusqlite::Connection, id: &str) {
     conn.execute(
         "INSERT INTO documents (id, path, hash, format, file_name, title, added_at, updated_at) VALUES (?1, 'C:/x', ?1, 'pdf', 'x.pdf', 'X', ?2, ?2)",

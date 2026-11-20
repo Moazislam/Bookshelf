@@ -118,3 +118,86 @@ jobs:
             src-tauri/target/**/release/bundle/deb/*.deb
             src-tauri/target/**/release/bundle/appimage/*.AppImage
             src-tauri/target/**/release/bundle/rpm/*.rpm
+
+  android:
+    name: Build (Android)
+    # Runs after the desktop builds so the draft release for a tag already exists.
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    env:
+      # Optional signing secrets. Without them CI makes a debug-signed APK (fine for testing, not for the Play Store).
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ./src-tauri -> target
+          key: android
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate the Android project if it isn't committed
+        run: |
+          echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          [ -d src-tauri/gen/android ] || NDK_HOME=$ANDROID_NDK_LATEST_HOME pnpm tauri android init --ci
+
+      - name: Build APK (64-bit ARM, i.e. practically every phone from the last ~8 years)
+        run: |
+          if [ "$HAS_KEYSTORE" = "true" ]; then
+            pnpm tauri android build --apk --target aarch64
+          else
+            pnpm tauri android build --apk --target aarch64 --debug
+          fi
+
+      - name: Sign release APK
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          UNSIGNED=$(find src-tauri/gen/android/app/build/outputs/apk -name '*release-unsigned.apk' | head -1)
+          "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.jks" --ks-pass env:KEYSTORE_PASSWORD \
+            --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASSWORD \
+            --out "$RUNNER_TEMP/BookShelf.apk" "$RUNNER_TEMP/aligned.apk"
+          rm "$RUNNER_TEMP/release.jks"
+
+      - name: Collect APK
+        run: |
+          mkdir -p dist-android
+          if [ "$HAS_KEYSTORE" = "true" ]; then
+            cp "$RUNNER_TEMP/BookShelf.apk" "dist-android/BookShelf_${GITHUB_REF_NAME//\//-}_android.apk"
+          else
+            cp "$(find src-tauri/gen/android/app/build/outputs/apk -name '*debug.apk' | head -1)" "dist-android/BookShelf_${GITHUB_REF_NAME//\//-}_android-debug.apk"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BookShelf-Android
+          if-no-files-found: error
+          path: dist-android/*.apk
+
+      - name: Attach to the draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$GITHUB_REF_NAME" dist-android/*.apk --clobber

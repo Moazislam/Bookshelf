@@ -3,6 +3,7 @@
   "identifier": "default",
   "description": "Main window: core APIs, native file dialogs and window state only. No direct filesystem access — documents are served through the bookfile:// protocol by id.",
   "windows": ["main"],
+  "platforms": ["windows", "macOS", "linux"],
   "permissions": [
     "core:default",
     "core:window:allow-set-fullscreen",

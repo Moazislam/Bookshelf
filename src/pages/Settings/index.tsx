@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { open, save, ask } from "@tauri-apps/plugin-dialog";
 import { Archive, BookOpen, Check, Database, FolderOpen, Keyboard, Library, Palette, RefreshCw, RotateCcw, Upload, Download, Wrench } from "lucide-react";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/services/api";
+import { api, errorMessage, isMobile } from "@/services/api";
 import { useBreadcrumbs, useAsync, formatShortcut } from "@/hooks";
 import { useSettings, DEFAULT_SHORTCUTS, DARK_PALETTES, LIGHT_PALETTES, type Accent, type Settings } from "@/stores/settings";
 import { EyeComfortControls } from "@/components/layout/EyeComfort";
@@ -22,12 +22,12 @@ const SECTIONS = [
 
 function Row({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-8 border-b border-border py-4 last:border-0">
+    <div className="flex flex-col items-start gap-3 border-b border-border py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="min-w-0">
         <div className="text-[13.5px] font-medium">{label}</div>
         {description && <div className="mt-0.5 text-[12.5px] text-muted">{description}</div>}
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className="max-w-full shrink-0 overflow-x-auto">{children}</div>
     </div>
   );
 }
@@ -172,6 +172,11 @@ function LibrarySettings() {
   const pdfPending = documents.filter((d) => d.format === "pdf" && (!d.metadataReady || !d.textIndexed));
   return (
     <Group title="Library">
+      {isMobile() ? (
+        <Row label="Storage" description="Imported books are copied into BookShelf's own storage on this device. The originals are never modified.">
+          <span className="text-[12px] text-subtle">Automatic</span>
+        </Row>
+      ) : (<>
       <Row label="Library folder" description={v["library.folder"] ?? "Not set — documents stay where you imported them from."}>
         <div className="flex gap-2">
           {v["library.folder"] && <Button size="sm" onClick={() => set("library.folder", null)}>Clear</Button>}
@@ -189,6 +194,7 @@ function LibrarySettings() {
       <Row label="Copy files into the library folder on import" description="Keeps a managed copy; originals are never modified or moved.">
         <Switch checked={v["library.copyOnImport"]} disabled={!v["library.folder"]} onChange={(x) => set("library.copyOnImport", x)} label="Copy on import" />
       </Row>
+      </>)}
       <Row label="Index PDF text for search" description="Extracts text in the background after import so PDFs are fully searchable.">
         <Switch checked={v["library.extractText"]} onChange={(x) => set("library.extractText", x)} label="Index PDF text" />
       </Row>
@@ -310,7 +316,7 @@ function Data() {
         <Row label="Optimise database" description="Checks integrity, compacts the database, optimises search indexes and removes unused cover images.">
           <Button size="sm" disabled={!!busy} onClick={() => run("maint", async () => {
             const r = await api.runMaintenance();
-            toast.success(r.integrity === "ok" ? "Database is healthy" : `Integrity check: ${r.integrity}`, { description: `${formatBytes(r.sizeBefore)} → ${formatBytes(r.sizeAfter)} · ${r.orphanCoversRemoved} unused covers removed` });
+            toast.success(r.integrity === "ok" ? "Database is healthy" : `Integrity check: ${r.integrity}`, { description: `${formatBytes(r.sizeBefore)} → ${formatBytes(r.sizeAfter)} · ${r.orphanCoversRemoved} unused covers removed${r.orphanFilesRemoved ? ` · ${r.orphanFilesRemoved} unused stored files removed` : ""}` });
             info.reload();
           })}>
             {busy === "maint" ? <Spinner className="size-3.5" /> : <Wrench />} Run now
@@ -388,10 +394,11 @@ export function SettingsPage() {
   useBreadcrumbs([{ label: "Settings" }]);
   const [section, setSection] = useState<(typeof SECTIONS)[number]["id"]>("appearance");
   return (
-    <div className="mx-auto flex max-w-5xl gap-10 px-8 py-7">
-      <nav className="sticky top-7 h-fit w-48 shrink-0">
+    <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-7 md:flex-row md:gap-10 md:px-8">
+      <nav className="h-fit shrink-0 md:sticky md:top-7 md:w-48">
         <h1 className="mb-5 font-serif text-[28px] font-semibold">Settings</h1>
-        <ul className="space-y-0.5">
+        {/* Phones: the section list becomes a horizontally scrolling tab strip. */}
+        <ul className="flex gap-1 overflow-x-auto [scrollbar-width:none] md:block md:space-y-0.5 [&_button]:max-md:whitespace-nowrap">
           {SECTIONS.map((s) => (
             <li key={s.id}>
               <button onClick={() => setSection(s.id)} className={cn("flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium", section === s.id ? "bg-surface text-fg shadow-sm ring-1 ring-border" : "text-muted hover:bg-bg-subtle hover:text-fg")}>
@@ -401,7 +408,7 @@ export function SettingsPage() {
           ))}
         </ul>
       </nav>
-      <div className="min-w-0 flex-1 pt-16">
+      <div className="min-w-0 flex-1 md:pt-16">
         {section === "appearance" && (
           <>
             <Appearance />

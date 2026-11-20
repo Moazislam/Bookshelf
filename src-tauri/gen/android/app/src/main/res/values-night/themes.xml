@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme (dark mode). Same as values/themes.xml; the colour comes from values-night/colors.xml. -->
+    <style name="Theme.bookshelf" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/bookshelf_bg</item>
+        <item name="android:statusBarColor">@color/bookshelf_bg</item>
+        <item name="android:navigationBarColor">@color/bookshelf_bg</item>
+    </style>
+</resources>

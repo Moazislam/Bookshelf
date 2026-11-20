@@ -25,6 +25,9 @@ const call = <T>(cmd: string, args?: Record<string, unknown>) => invoke<T>(cmd, 
 
 export const isTauri = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
+/** Phone or tablet build: no windows to manage, no drag & drop from a file manager. */
+export const isMobile = () => typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 // URLs served by the bookfile:// protocol --------------------------------------
 export const fileUrl = {
   document: (id: string) => convertFileSrc(`doc/${id}`, "bookfile").replace(/%2F/gi, "/"),
@@ -135,7 +138,7 @@ export const api = {
   createBackup: (path: string) => call<number>("create_backup", { path }),
   restoreBackup: (path: string) => call<void>("restore_backup", { path }),
   runMaintenance: () =>
-    call<{ integrity: string; sizeBefore: number; sizeAfter: number; orphanCoversRemoved: number }>("run_maintenance"),
+    call<{ integrity: string; sizeBefore: number; sizeAfter: number; orphanCoversRemoved: number; orphanFilesRemoved: number }>("run_maintenance"),
 };
 
 export function errorMessage(e: unknown): string {

@@ -37,9 +37,9 @@ export function StatisticsPage() {
 
   if (loading && !data) {
     return (
-      <div className="px-8 py-7">
+      <div className="px-4 md:px-8 py-7">
         <Skeleton className="h-9 w-48" />
-        <div className="mt-6 grid grid-cols-4 gap-3">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export function StatisticsPage() {
   const months = data.addedPerMonth.map((b) => ({ ...b, label: new Date(b.key + "-01T00:00").toLocaleDateString(undefined, { month: "short", year: "2-digit" }) }));
 
   return (
-    <div className="mx-auto max-w-[1240px] px-8 py-7">
+    <div className="mx-auto max-w-[1240px] px-4 md:px-8 py-7">
       <div className="flex items-end justify-between">
         <div>
           <h1 className="font-serif text-[28px] font-semibold">Statistics</h1>

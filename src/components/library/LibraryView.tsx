@@ -173,7 +173,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
 
   if (!loaded) {
     return (
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-8 py-6">
+      <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5 px-4 md:px-8 py-6">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i}>
             <Skeleton className="aspect-[2/3] w-full" />
@@ -188,7 +188,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
   return (
     <div className="flex flex-col">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border/60 bg-bg/90 px-8 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border/60 bg-bg/90 px-4 md:px-8 py-3 backdrop-blur">
         <div className="relative w-64">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-subtle" />
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Filter by title, author, tag…" className="h-8 pl-8" />
@@ -305,7 +305,7 @@ export function LibraryView({ preset = {}, emptyTitle, emptyDescription }: { pre
 
       {/* Bulk actions */}
       {selected.size > 0 && (
-        <div className="sticky top-[57px] z-10 mx-8 mt-3 flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 shadow-sm animate-slide-up">
+        <div className="sticky top-[57px] z-10 mx-4 md:mx-8 mt-3 flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 shadow-sm animate-slide-up">
           <span className="mr-2 text-[13px] font-medium">{selected.size} selected</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild><Button variant="ghost" size="sm"><CircleDot /> Status</Button></DropdownMenuTrigger>
@@ -407,7 +407,7 @@ function VirtualGrid({ docs, selected, onSelect }: { docs: Document[]; selected:
   useEffect(() => virtualizer.measure(), [rowH, virtualizer]);
   const selecting = selected.size > 0;
   return (
-    <div ref={ref} className="relative mx-8 my-4" style={{ height: virtualizer.getTotalSize() }}>
+    <div ref={ref} className="relative mx-4 md:mx-8 my-4" style={{ height: virtualizer.getTotalSize() }}>
       {width > 0 &&
         virtualizer.getVirtualItems().map((row) => (
           <div
@@ -430,8 +430,8 @@ function VirtualList({ docs, selected, onSelect, tagName }: { docs: Document[]; 
   const virtualizer = useVirtualizer({ count: docs.length, getScrollElement: getScroll, estimateSize: () => 56, overscan: 10, scrollMargin: ref.current?.offsetTop ?? 0 });
   const selecting = selected.size > 0;
   return (
-    <div className="mx-8 my-4 overflow-hidden rounded-lg border border-border bg-surface/50">
-      <div className="grid h-9 grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] items-center gap-3 border-b border-border bg-bg-subtle/60 px-3 text-[11px] font-semibold uppercase tracking-wider text-subtle">
+    <div className="mx-4 md:mx-8 my-4 overflow-hidden rounded-lg border border-border bg-surface/50">
+      <div className="grid h-9 grid-cols-[28px_minmax(0,3fr)_minmax(0,1.6fr)_80px_110px_110px_80px_32px] max-md:grid-cols-[28px_minmax(0,1fr)_32px] max-md:[&>*:nth-child(n+3):nth-child(-n+7)]:hidden items-center gap-3 border-b border-border bg-bg-subtle/60 px-3 text-[11px] font-semibold uppercase tracking-wider text-subtle">
         <span />
         <span>Title</span>
         <span>Author</span>

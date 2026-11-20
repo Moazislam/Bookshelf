@@ -22,6 +22,7 @@ import { useLibrary } from "@/stores/library";
 import { useUI } from "@/stores/ui";
 import { useSetting } from "@/stores/settings";
 import { cn, formatBytes, swatch } from "@/utils";
+import { isMobile } from "@/services/api";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Tooltip } from "@/components/ui";
 import { pickAndImportFiles, pickAndImportFolder } from "@/features/documents/importer";
 import { CollectionDialog } from "@/components/library/CollectionDialog";
@@ -114,8 +115,9 @@ function CollectionTree({ collections, parentId, depth }: { collections: Collect
   );
 }
 
-export function Sidebar() {
-  const collapsed = useUI((s) => s.sidebarCollapsed);
+export function Sidebar({ drawer = false }: { drawer?: boolean }) {
+  // As a phone drawer it is always shown expanded, with taller touch rows.
+  const collapsed = useUI((s) => s.sidebarCollapsed) && !drawer;
   const documents = useLibrary((s) => s.documents);
   const collections = useLibrary((s) => s.collections);
   const profileName = useSetting("profile.name");
@@ -133,7 +135,13 @@ export function Sidebar() {
   }, [documents]);
 
   return (
-    <aside className={cn("flex h-full shrink-0 flex-col border-r border-border bg-sidebar transition-[width] duration-200", collapsed ? "w-[60px]" : "w-[248px]")}>
+    <aside
+      className={cn(
+        "flex h-full shrink-0 flex-col border-r border-border bg-sidebar transition-[width] duration-200",
+        collapsed ? "w-[60px]" : "w-[248px]",
+        drawer && "w-[284px] max-w-[85vw] pt-safe-t pb-safe-b [&_nav_a]:h-10 [&_nav_a]:text-[14px]",
+      )}
+    >
       <div className={cn("flex h-13 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
         <div className="grid size-7 place-items-center rounded-lg bg-accent text-accent-fg shadow-sm">
           <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -155,9 +163,11 @@ export function Sidebar() {
             <DropdownMenuItem onSelect={() => pickAndImportFiles()}>
               <Upload /> Import files…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => pickAndImportFolder()}>
-              <FolderPlus /> Import a folder…
-            </DropdownMenuItem>
+            {!isMobile() && (
+              <DropdownMenuItem onSelect={() => pickAndImportFolder()}>
+                <FolderPlus /> Import a folder…
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
