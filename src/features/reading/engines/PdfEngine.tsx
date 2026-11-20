@@ -382,6 +382,7 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
           else scrollRef.current?.scrollBy({ top: -scrollRef.current.clientHeight * 0.9, behavior: "smooth" });
         },
         zoom: zoomBy,
+        goToPage: (p) => scrollToPage(p),
         bookmarkTarget: () => {
           const l = lastLoc.current;
           return { locator: String(l.page), label: `Page ${l.page}`, sortKey: l.page };

@@ -35,6 +35,8 @@ export interface ReaderEngine {
   prev: () => void;
   clearSelection?: () => void;
   zoom?: (dir: 1 | -1 | 0) => void;
+  /** Jump to a 1-based page (or EPUB location) as reported in `location.page`. Enables the page scrubber. */
+  goToPage?: (page: number) => void;
   /** Current position as a bookmark locator + label. */
   bookmarkTarget: () => { locator: string; label: string; sortKey: number } | null;
 }
