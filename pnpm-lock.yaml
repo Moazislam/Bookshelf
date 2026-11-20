@@ -92,6 +92,9 @@ importers:
       epubjs:
         specifier: ^0.3.93
         version: 0.3.93
+      idb-keyval:
+        specifier: ^6.3.0
+        version: 6.3.0
       lucide-react:
         specifier: ^1.75.0
         version: 1.75.0(@types/react@19.3.0)(react@19.3.1)

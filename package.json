@@ -44,6 +44,7 @@
     "cmdk": "^1.1.1",
     "dompurify": "^3.4.18",
     "epubjs": "^0.3.93",
+    "idb-keyval": "^6.3.0",
     "lucide-react": "^1.75.0",
     "marked": "^18.2.1",
     "pdfjs-dist": "^6.5.438",

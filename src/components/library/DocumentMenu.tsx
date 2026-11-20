@@ -18,7 +18,7 @@ import { useLibrary } from "@/stores/library";
 import { useDocDialogs } from "./DocumentDialogs";
 import { changeCover, relinkDocument, revealDocument, setStatus, toggleCollection, toggleFavorite } from "@/features/documents/actions";
 import { api, isMobile } from "@/services/api";
-import { enqueueOcr, needsOcr } from "@/services/ocr";
+import { needsOcr, useOcr } from "@/services/ocr";
 import { refreshLibrary } from "@/stores/library";
 import { collectionOptions } from "./CollectionDialog";
 import { STATUSES, STATUS_LABEL, swatch } from "@/utils";
@@ -97,7 +97,7 @@ export function DocumentMenuItems({ doc, kind }: { doc: Document; kind: "context
         <Pencil /> Edit details…
       </C.Item>
       {needsOcr(doc) && (
-        <C.Item onSelect={() => enqueueOcr(doc.id)}>
+        <C.Item onSelect={() => useOcr.getState().openDialog(doc.id)}>
           <ScanText /> Recognise text (OCR)
         </C.Item>
       )}

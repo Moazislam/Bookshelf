@@ -8,6 +8,7 @@ import { useSettings, DEFAULT_SHORTCUTS, DARK_PALETTES, LIGHT_PALETTES, type Acc
 import { EyeComfortControls } from "@/components/layout/EyeComfort";
 import { refreshLibrary, useLibrary } from "@/stores/library";
 import { enqueuePdfProcessing } from "@/services/pdfProcessing";
+import { LanguagePicker } from "@/features/ocr/OcrDialog";
 import { Button, Input, Kbd, SegmentedControl, Select, Slider, Spinner, Switch } from "@/components/ui";
 import { highlightsToMarkdown, notesToMarkdown } from "@/features/annotations/export";
 import { cn, formatBytes } from "@/utils";
@@ -198,6 +199,11 @@ function LibrarySettings() {
       <Row label="Index PDF text for search" description="Extracts text in the background after import so PDFs are fully searchable.">
         <Switch checked={v["library.extractText"]} onChange={(x) => set("library.extractText", x)} label="Index PDF text" />
       </Row>
+      <div className="border-b border-border py-4">
+        <div className="text-[13.5px] font-medium">Text recognition (OCR) languages</div>
+        <div className="mt-0.5 mb-3 text-[12.5px] text-muted">Used to make scanned books searchable. English is built in; other languages download once (from jsDelivr) and then work offline.</div>
+        <LanguagePicker />
+      </div>
       <Row label="Duplicate handling" description="Files are identified by content. Re-importing a file you already have is skipped; if the original was moved, the document is relinked to the new location.">
         <span className="text-[12px] text-subtle">Automatic</span>
       </Row>

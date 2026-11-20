@@ -49,6 +49,8 @@ export interface Settings {
   "library.folder": string | null;
   "library.copyOnImport": boolean;
   "library.extractText": boolean;
+  /** Languages last used for OCR (tesseract codes). */
+  "ocr.languages": string[];
   "library.view": "grid" | "list";
   "library.sort": string;
   "dashboard.sections": Record<"continue" | "recent" | "collections" | "activity" | "stats", boolean>;
@@ -99,6 +101,7 @@ export const DEFAULT_SETTINGS: Settings = {
   "library.folder": null,
   "library.copyOnImport": false,
   "library.extractText": true,
+  "ocr.languages": ["eng"],
   "library.view": "grid",
   "library.sort": "added",
   "dashboard.sections": { continue: true, recent: true, collections: true, activity: true, stats: true },

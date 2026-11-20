@@ -23,7 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob: bookfile: http://bookfile.localhost; connect-src 'self' ipc: http://ipc.localhost bookfile: http://bookfile.localhost blob: data:; style-src 'self' 'unsafe-inline' blob:; font-src 'self' data: blob:; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; frame-src 'self' blob: bookfile: http://bookfile.localhost; media-src 'self' blob: bookfile: http://bookfile.localhost"
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob: bookfile: http://bookfile.localhost; connect-src 'self' ipc: http://ipc.localhost https://cdn.jsdelivr.net bookfile: http://bookfile.localhost blob: data:; style-src 'self' 'unsafe-inline' blob:; font-src 'self' data: blob:; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; frame-src 'self' blob: bookfile: http://bookfile.localhost; media-src 'self' blob: bookfile: http://bookfile.localhost"
     }
   },
   "bundle": {

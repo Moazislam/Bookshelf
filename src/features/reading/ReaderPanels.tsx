@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BookmarkPlus, ChevronDown, Pencil, Plus, ScanText, Search, StickyNote, Trash, X } from "lucide-react";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/services/api";
-import { enqueueOcr, isOcrQueued, needsOcr } from "@/services/ocr";
+import { needsOcr, useOcr } from "@/services/ocr";
 import { useReader, HL_SWATCH, type TocItem } from "./store";
 import { PdfThumbnails } from "./engines/PdfEngine";
 import { ComicThumbnails } from "./engines/ComicEngine";
@@ -219,7 +219,7 @@ function SearchTab() {
   const [loading, setLoading] = useState(false);
   // The library copy is refreshed when OCR finishes; the reader's copy is not.
   const libDoc = useLibrary((s) => s.byId[doc.id]) ?? doc;
-  const [ocrQueued, setOcrQueued] = useState(() => isOcrQueued(doc.id));
+  const ocrJob = useOcr((s) => s.jobs[doc.id]);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const on = () => inputRef.current?.focus();
@@ -263,8 +263,8 @@ function SearchTab() {
         {needsOcr(libDoc) && (
           <div className="px-3 py-4 text-center text-[12.5px] text-subtle">
             <p>{doc.format === "cbz" ? "This comic contains images only" : "This looks like a scanned book"}, so there is no text to search yet.</p>
-            <Button size="sm" variant="secondary" className="mt-3" disabled={ocrQueued} onClick={() => { enqueueOcr(doc.id); setOcrQueued(true); }}>
-              <ScanText /> {ocrQueued ? "Recognising text…" : "Recognise text (OCR)"}
+            <Button size="sm" variant="secondary" className="mt-3" onClick={() => useOcr.getState().openDialog(doc.id)}>
+              <ScanText /> {ocrJob ? `Recognising text… ${ocrJob.total ? Math.round((ocrJob.done / ocrJob.total) * 100) : 0}%` : "Recognise text (OCR)"}
             </Button>
           </div>
         )}
