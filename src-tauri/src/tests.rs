@@ -256,7 +256,7 @@ fn corrupt_cover_is_reported_as_a_warning_not_swallowed() {
     let ImportOutcome::Imported { id, warning, .. } = import_one(&mut conn, &covers, &epub, &no_copy()).unwrap() else { panic!() };
     let doc = get_doc(&conn, &id).unwrap();
     assert_eq!(doc.title, "Broken Cover");
-    assert!(doc.cover_path.is_none(), "no cover file should be stored for a corrupt image");
+    assert!(!doc.has_cover, "no cover file should be stored for a corrupt image");
     let w = warning.expect("a corrupt cover must surface as a warning");
     assert!(w.contains("Cover image"), "unexpected warning: {w}");
 }
