@@ -103,6 +103,8 @@ pub struct ImportReport {
     pub relinked: Vec<String>,
     pub duplicates: Vec<ImportIssue>,
     pub errors: Vec<ImportIssue>,
+    /// Imported, but with something worth telling the user (e.g. a corrupt cover image).
+    pub warnings: Vec<ImportIssue>,
     /// PDFs that still need metadata/text extraction in the frontend.
     pub pdf_pending: Vec<String>,
 }
@@ -115,7 +117,7 @@ pub struct ImportJob {
 }
 
 pub enum ImportOutcome {
-    Imported { id: String, pdf_pending: bool },
+    Imported { id: String, pdf_pending: bool, warning: Option<String> },
     Relinked(String),
     Duplicate(String),
 }
@@ -158,11 +160,13 @@ pub fn import_one(conn: &mut Connection, covers_dir: &Path, raw: &Path, opts: &I
     let extracted = dp::extract(&path, format)?;
     let id = new_id();
     let now = now_ms();
-    let cover_file = match &extracted.cover {
-        Some(bytes) => cover::save_cover(bytes, covers_dir, &id)
-            .ok()
-            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned())),
-        None => None,
+    // A broken cover must not fail the import, but it should not vanish silently either.
+    let (cover_file, warning) = match &extracted.cover {
+        Some(bytes) => match cover::save_cover(bytes, covers_dir, &id) {
+            Ok(p) => (p.file_name().map(|n| n.to_string_lossy().into_owned()), None),
+            Err(e) => (None, Some(format!("Cover image could not be processed: {e}"))),
+        },
+        None => (None, None),
     };
     let title = extracted.title.clone().unwrap_or_else(|| paths::file_stem_title(&path));
     let pdf_pending = format == Format::Pdf;
@@ -201,7 +205,7 @@ pub fn import_one(conn: &mut Connection, covers_dir: &Path, raw: &Path, opts: &I
         set_text_source(&tx, &id, None)?;
     }
     tx.commit()?;
-    Ok(ImportOutcome::Imported { id, pdf_pending })
+    Ok(ImportOutcome::Imported { id, pdf_pending, warning })
 }
 
 fn read_setting(conn: &Connection, key: &str) -> Option<serde_json::Value> {
@@ -280,7 +284,7 @@ pub fn import_paths(
                 let _ = std::fs::remove_file(&file); // nothing points at this copy
             }
             match result {
-                Ok(ImportOutcome::Imported { id, pdf_pending }) => {
+                Ok(ImportOutcome::Imported { id, pdf_pending, warning }) => {
                     if pdf_pending {
                         report.pdf_pending.push(id.clone());
                     }

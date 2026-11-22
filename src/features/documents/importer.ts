@@ -37,6 +37,7 @@ export async function initImportListeners() {
     if (payload.relinked.length) parts.push(`${payload.relinked.length} relinked`);
     if (payload.duplicates.length) parts.push(`${payload.duplicates.length} already in library`);
     if (payload.errors.length) parts.push(`${payload.errors.length} failed`);
+    if (payload.warnings.length) parts.push(`${payload.warnings.length} warning${payload.warnings.length > 1 ? "s" : ""}`);
     ui.upsertTask({ id: payload.jobId, label: "Import finished", detail: parts.join(" · "), progress: 1, status: payload.errors.length ? "error" : "done" });
     setTimeout(() => useUI.getState().removeTask(payload.jobId), 4000);
 
@@ -45,6 +46,12 @@ export async function initImportListeners() {
         description: payload.errors.slice(0, 4).map((e) => `${e.fileName}: ${e.message}`).join("\n"),
         duration: 10000,
       });
+    }
+    if (payload.warnings.length) {
+      toast.warning(
+        `${payload.warnings.length} file${payload.warnings.length > 1 ? "s" : ""} imported with warnings`,
+        { description: payload.warnings.slice(0, 4).map((w) => `${w.fileName}: ${w.message}`).join("\n"), duration: 10000 },
+      );
     }
     if (added || payload.relinked.length) {
       toast.success(added === 1 ? "Document added to your library" : `${added + payload.relinked.length} documents imported`, {

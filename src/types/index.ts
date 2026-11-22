@@ -135,6 +135,7 @@ export interface ImportReport {
   relinked: string[];
   duplicates: ImportIssue[];
   errors: ImportIssue[];
+  warnings: ImportIssue[];
   pdfPending: string[];
 }
 export interface ImportIssue {

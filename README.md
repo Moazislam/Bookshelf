@@ -31,6 +31,7 @@ A local-first desktop library for your PDFs, EPUBs, comics (CBZ), text and Markd
   - Anchoring per format: PDF uses normalised page rects plus a text quote, EPUB uses a CFI, text uses offsets plus a quote.
   - Bookmarks, and a Markdown notes workspace with autosave, tags, highlight-linked notes and Markdown export.
 - **Search:** SQLite FTS5 across titles, authors, tags, collections, notes, highlights and the full text of every document. Ctrl+K opens it.
+- **OCR:** scanned PDFs and comics whose pages are only images become searchable and highlightable. Recognition runs fully on your device. English is built in; other languages download once (from jsDelivr) on first use and then work offline.
 - **Insights:** a dashboard, reading history and statistics, all computed from measured reading sessions (active, visible time only).
 - **Themes:** four light themes (Paper, Snow, Sepia, Sage) and four dark ones (Charcoal, Midnight, True black, Mocha), plus five accent colours. Light, Dark or System mode picks which theme is active, and book pages follow the theme when the reading theme is set to Auto.
 - **Eye comfort:** a warm blue-light filter with adjustable warmth and screen dimming that covers the whole window, including book pages. Turn it on from the eye icon or with Ctrl+Shift+E, or schedule it (e.g. 21:00–07:00).
@@ -157,3 +158,7 @@ src-tauri/
 The frontend has no direct filesystem access. Documents are served by id through the `bookfile://` protocol, and the capabilities only allow dialogs and window state. PDF metadata, covers and text are extracted by pdf.js in a background queue that resumes after restarts.
 
 Data lives in the app data folder (`%APPDATA%\app.bookshelf.desktop`): `library.db` and `covers/`.
+
+## License
+
+[MIT](LICENSE)
