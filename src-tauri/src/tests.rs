@@ -40,7 +40,7 @@ fn import_markdown_and_detect_duplicates() {
     let mut conn = db.conn();
 
     let id = match import_one(&mut conn, &covers, &md, &no_copy()).unwrap() {
-        ImportOutcome::Imported { id, pdf_pending } => {
+        ImportOutcome::Imported { id, pdf_pending, .. } => {
             assert!(!pdf_pending);
             id
         }
@@ -204,7 +204,7 @@ fn scanned_pdf_is_flagged_and_becomes_searchable_after_ocr() {
     let pdf = write_file(dir.path(), "scan.pdf", "%PDF-1.4 scanned pages only");
     let db = Db::open_in_memory().unwrap();
     let mut conn = db.conn();
-    let ImportOutcome::Imported { id, pdf_pending } = import_one(&mut conn, &covers, &pdf, &no_copy()).unwrap() else { panic!() };
+    let ImportOutcome::Imported { id, pdf_pending, .. } = import_one(&mut conn, &covers, &pdf, &no_copy()).unwrap() else { panic!() };
     assert!(pdf_pending);
     assert_eq!(get_doc(&conn, &id).unwrap().text_source, None);
 
@@ -227,4 +227,36 @@ fn scanned_pdf_is_flagged_and_becomes_searchable_after_ocr() {
     let txt = write_file(dir.path(), "a.txt", "plain words");
     let ImportOutcome::Imported { id: tid, .. } = import_one(&mut conn, &covers, &txt, &no_copy()).unwrap() else { panic!() };
     assert_eq!(get_doc(&conn, &tid).unwrap().text_source.as_deref(), Some("native"));
+}
+
+#[test]
+fn corrupt_cover_is_reported_as_a_warning_not_swallowed() {
+    let dir = tempfile::tempdir().unwrap();
+    let covers = dir.path().join("covers");
+    // Minimal EPUB whose declared cover image is not a real image.
+    let epub = dir.path().join("broken-cover.epub");
+    {
+        let f = std::fs::File::create(&epub).unwrap();
+        let mut z = zip::ZipWriter::new(f);
+        let opts = zip::write::SimpleFileOptions::default();
+        z.start_file("mimetype", opts).unwrap();
+        z.write_all(b"application/epub+zip").unwrap();
+        z.start_file("META-INF/container.xml", opts).unwrap();
+        z.write_all(br#"<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>"#).unwrap();
+        z.start_file("OEBPS/content.opf", opts).unwrap();
+        z.write_all(br#"<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Broken Cover</dc:title></metadata><manifest><item id="c1" href="c1.xhtml" media-type="application/xhtml+xml"/><item id="img" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/></manifest><spine><itemref idref="c1"/></spine></package>"#).unwrap();
+        z.start_file("OEBPS/c1.xhtml", opts).unwrap();
+        z.write_all(b"<html><body><p>Some real chapter text to index.</p></body></html>").unwrap();
+        z.start_file("OEBPS/cover.jpg", opts).unwrap();
+        z.write_all(b"this is not a jpeg").unwrap();
+        z.finish().unwrap();
+    }
+    let db = Db::open_in_memory().unwrap();
+    let mut conn = db.conn();
+    let ImportOutcome::Imported { id, warning, .. } = import_one(&mut conn, &covers, &epub, &no_copy()).unwrap() else { panic!() };
+    let doc = get_doc(&conn, &id).unwrap();
+    assert_eq!(doc.title, "Broken Cover");
+    assert!(doc.cover_path.is_none(), "no cover file should be stored for a corrupt image");
+    let w = warning.expect("a corrupt cover must surface as a warning");
+    assert!(w.contains("Cover image"), "unexpected warning: {w}");
 }

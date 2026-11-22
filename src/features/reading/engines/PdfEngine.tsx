@@ -10,6 +10,11 @@ import { EngineError, EngineLoading } from "./common";
 type Rect = { x: number; y: number; w: number; h: number; p?: number };
 const GAP = 16;
 const PAD = 24;
+const DPR_CAP = 2.5;
+// Keep page bitmaps inside GPU texture / canvas size limits: past them, browsers
+// downscale or drop the canvas, which looks exactly like blurry rendering.
+const MAX_BITMAP_SIDE = 8192;
+const MAX_BITMAP_AREA = 64_000_000;
 
 export type ZoomMode = "fit-width" | "fit-page" | number;
 
@@ -40,6 +45,7 @@ interface PageProps {
   pdf: PDFDocumentProxy;
   page: number;
   scale: number;
+  dpr: number;
   baseW: number;
   baseH: number;
   highlights: Highlight[];
@@ -49,7 +55,7 @@ interface PageProps {
   onSize: (page: number, w: number, h: number) => void;
 }
 
-const PdfPage = memo(function PdfPage({ pdf, page, scale, baseW, baseH, highlights, activeId, invert, find, onSize }: PageProps) {
+const PdfPage = memo(function PdfPage({ pdf, page, scale, dpr, baseW, baseH, highlights, activeId, invert, find, onSize }: PageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [rendered, setRendered] = useState(false);
@@ -65,16 +71,21 @@ const PdfPage = memo(function PdfPage({ pdf, page, scale, baseW, baseH, highligh
       const vp1 = p.getViewport({ scale: 1 });
       if (Math.abs(vp1.width - baseW) > 0.5 || Math.abs(vp1.height - baseH) > 0.5) onSize(page, vp1.width, vp1.height);
       const viewport = p.getViewport({ scale });
-      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      // Render at device-pixel resolution, capped so the bitmap stays within
+      // GPU texture and canvas-area limits (huge pages at high zoom).
+      let outputScale = dpr;
+      const bw = viewport.width * outputScale, bh = viewport.height * outputScale;
+      const shrink = Math.min(1, MAX_BITMAP_SIDE / bw, MAX_BITMAP_SIDE / bh, Math.sqrt(MAX_BITMAP_AREA / (bw * bh)));
+      if (shrink < 1) outputScale *= shrink;
       const canvas = canvasRef.current;
       if (!canvas) return;
       // Render into an offscreen canvas then swap, to avoid a blank flash while zooming.
       const off = document.createElement("canvas");
-      off.width = Math.floor(viewport.width * dpr);
-      off.height = Math.floor(viewport.height * dpr);
+      off.width = Math.floor(viewport.width * outputScale);
+      off.height = Math.floor(viewport.height * outputScale);
       const ctx = off.getContext("2d", { alpha: false });
       if (!ctx) return;
-      renderTask = p.render({ canvas: off, canvasContext: ctx, viewport, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined });
+      renderTask = p.render({ canvas: off, canvasContext: ctx, viewport, transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined });
       try {
         await renderTask.promise;
       } catch {
@@ -102,7 +113,7 @@ const PdfPage = memo(function PdfPage({ pdf, page, scale, baseW, baseH, highligh
       renderTask?.cancel();
       textLayer?.cancel();
     };
-  }, [pdf, page, scale, baseW, baseH, onSize]);
+  }, [pdf, page, scale, dpr, baseW, baseH, onSize]);
 
   // Mark text-layer spans that contain the find query.
   useEffect(() => {
@@ -171,10 +182,30 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
   const sizes = useRef(new Map<number, { w: number; h: number }>());
   const [sizeVersion, setSizeVersion] = useState(0);
   const [zoom, setZoom] = useState<ZoomMode>(zoomSetting);
+  // Track the device pixel ratio: when the WebView's own page zoom changes it,
+  // pages must re-render or their canvases stay low-resolution bitmaps that the
+  // compositor merely stretches (which reads as "pixelated when zoomed").
+  const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, DPR_CAP));
+  const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [singlePage, setSinglePage] = useState(1);
   const restored = useRef(false);
+
+  useEffect(() => {
+    let mq: MediaQueryList | null = null;
+    const onChange = () => {
+      setDpr(Math.min(window.devicePixelRatio || 1, DPR_CAP));
+      arm(); // the query only fires once per value, so re-arm for the new one
+    };
+    const arm = () => {
+      mq?.removeEventListener("change", onChange);
+      mq = matchMedia(`(resolution: ${window.devicePixelRatio || 1}x)`);
+      mq.addEventListener("change", onChange);
+    };
+    arm();
+    return () => mq?.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const mo = new MutationObserver(() => setDark(document.documentElement.classList.contains("dark")));
@@ -358,6 +389,93 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
     [scale],
   );
 
+  // --- Interactive zoom: pinch (touch) and ctrl+wheel (desktop) -----------
+  // During the gesture the rendered pages are scaled with a CSS transform for
+  // instant feedback; when the gesture ends the zoom is committed and every
+  // page re-renders sharply at the new resolution. preventDefault stops the
+  // WebView's own bitmap zoom, which is what made zoomed pages look pixelated.
+  const gesture = useRef<{ startZoom: number; factor: number } | null>(null);
+  const gestureTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const applyPreview = useCallback((factor: number) => {
+    const el = contentRef.current;
+    if (!el) return;
+    if (factor === 1) {
+      el.style.transform = "";
+      el.style.transformOrigin = "";
+    } else {
+      el.style.transform = `scale(${factor})`;
+    }
+  }, []);
+
+  const commitPreview = useCallback(() => {
+    const g = gesture.current;
+    if (!g) return;
+    gesture.current = null;
+    applyPreview(1);
+    setZoom(Math.min(4, Math.max(0.25, g.startZoom * g.factor)));
+  }, [applyPreview]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const g = (gesture.current ??= { startZoom: scale / (96 / 72), factor: 1 });
+      g.factor = Math.min(8, Math.max(0.1, g.factor * Math.exp(-e.deltaY * 0.002)));
+      const r = contentRef.current?.getBoundingClientRect();
+      if (contentRef.current && r) contentRef.current.style.transformOrigin = `${e.clientX - r.left}px ${e.clientY - r.top}px`;
+      applyPreview(g.factor);
+      if (gestureTimer.current) clearTimeout(gestureTimer.current);
+      gestureTimer.current = setTimeout(commitPreview, 180);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [scale, applyPreview, commitPreview]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let startDist = 0;
+    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      if (gestureTimer.current) {
+        clearTimeout(gestureTimer.current);
+        commitPreview();
+      }
+      startDist = dist(e.touches);
+      gesture.current = { startZoom: scale / (96 / 72), factor: 1 };
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const r = contentRef.current?.getBoundingClientRect();
+      if (contentRef.current && r) contentRef.current.style.transformOrigin = `${cx - r.left}px ${cy - r.top}px`;
+    };
+    const onMove = (e: TouchEvent) => {
+      const g = gesture.current;
+      if (!g || e.touches.length !== 2 || !startDist) return;
+      e.preventDefault(); // keep the WebView from bitmap-zooming the whole page
+      g.factor = Math.min(8, Math.max(0.1, dist(e.touches) / startDist));
+      applyPreview(g.factor);
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length >= 2) return;
+      if (gesture.current && startDist) commitPreview();
+      startDist = 0;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd);
+    el.addEventListener("touchcancel", onEnd);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", onEnd);
+    };
+  }, [scale, applyPreview, commitPreview]);
+
   // Register imperative API.
   useEffect(() => {
     if (!pdf) return;
@@ -487,7 +605,7 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
   return (
     <div ref={scrollRef} className="relative h-full overflow-auto bg-bg-subtle" onMouseUp={onMouseUp}>
       {layout === "continuous" ? (
-        <div style={{ height: virtualizer.getTotalSize(), position: "relative", minWidth: sizeOf(1).w * scale + PAD * 2 }}>
+        <div ref={contentRef} style={{ height: virtualizer.getTotalSize(), position: "relative", minWidth: sizeOf(1).w * scale + PAD * 2 }}>
           {virtualizer.getVirtualItems().map((item) => {
             const s = sizeOf(item.index + 1);
             return (
@@ -496,6 +614,7 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
                   pdf={pdf}
                   page={item.index + 1}
                   scale={scale}
+                  dpr={dpr}
                   baseW={s.w}
                   baseH={s.h}
                   highlights={pageHighlights}
@@ -509,12 +628,13 @@ export function PdfEngine({ doc, initial }: { doc: Document; initial: string | n
           })}
         </div>
       ) : (
-        <div className="flex min-h-full items-start justify-center" style={{ padding: PAD }}>
+        <div ref={contentRef} className="flex min-h-full items-start justify-center" style={{ padding: PAD }}>
           <PdfPage
             key={singlePage}
             pdf={pdf}
             page={singlePage}
             scale={scale}
+            dpr={dpr}
             baseW={sizeOf(singlePage).w}
             baseH={sizeOf(singlePage).h}
             highlights={pageHighlights}
